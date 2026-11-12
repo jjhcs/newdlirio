@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLÍRIO | Painel Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+</head>
+<body class="admin-body">
+
+    <!-- TELA DE LOGIN -->
+    <div id="login-screen" class="admin-container">
+        <h2>LOGIN ADMINISTRADOR</h2>
+        <form id="login-form">
+            <input type="email" id="email" placeholder="E-mail" required>
+            <input type="password" id="password" placeholder="Senha" required>
+            <button type="submit" class="btn-primary">ENTRAR</button>
+        </form>
+        <p id="login-error" class="error-msg hidden">E-mail ou senha incorretos.</p>
+    </div>
+
+    <!-- PAINEL DE ADMIN -->
+    <div id="admin-panel" class="admin-container hidden" style="max-width: 1000px;">
+        <div class="admin-header">
+            <h2>GERENCIAR PRODUTOS</h2>
+            <button id="logout-btn" class="btn-logout">SAIR</button>
+        </div>
+
+        <!-- LISTA DE PRODUTOS EXISTENTES -->
+        <h3 class="admin-subtitle">PRODUTOS CADASTRADOS</h3>
+        <div id="product-list" class="admin-product-list">
+            <!-- O JS vai preencher aqui -->
+        </div>
+
+        <hr style="border-color: #222; margin: 40px 0;">
+
+        <!-- FORMULÁRIO (Serve para Criar e Editar) -->
+        <h3 class="admin-subtitle" id="form-title">CADASTRAR NOVO PRODUTO</h3>
+        <form id="product-form">
+            <!-- Input oculto para guardar o ID do produto (usado na edição) -->
+            <input type="hidden" id="prod-id">
+
+            <div class="form-group">
+                <label>Código SKU</label>
+                <input type="text" id="prod-sku" placeholder="Ex: TN-ROS-001">
+            </div>
+
+            <div class="form-group">
+                <label>Nome do Produto</label>
+                <input type="text" id="prod-name" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select id="prod-category" required>
+                        <option value="Camisetas">Camisetas</option>
+                        <option value="Bermudas">Bermudas</option>
+                        <option value="Tênis">Tênis</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Preço (R$)</label>
+                    <input type="number" step="0.01" id="prod-price" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="prod-desc" rows="3"></textarea>
+            </div>
+
+            <!-- ÁREA DE PRÉ-VISUALIZAÇÃO E ORDENAÇÃO DAS FOTOS -->
+            <div class="form-group">
+                <label>Fotos do Produto (Arraste para reordenar. A 1ª é a Frente, a 2ª é o Verso)</label>
+                <div id="current-images-preview" class="preview-container">
+                    <!-- O JavaScript vai preencher com as fotos atuais e novas aqui -->
+                </div>
+            </div>
+
+            <!-- ÁREA DE UPLOAD (DRAG & DROP) -->
+            <div class="form-group">
+                <label>Adicionar Fotos</label>
+                <div id="drop-zone" class="drop-zone">
+                    <!-- Ícone de Upload -->
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span>Arraste fotos aqui ou <strong style="color: var(--pink-accent);">clique para selecionar</strong></span>
+                    <span style="font-size: 0.7rem; color: #666; margin-top: 5px;">Formatos aceitos: JPG, PNG, WEBP</span>
+                    <!-- Input escondido que faz a mágica acontecer -->
+                    <input type="file" id="prod-images-input" accept="image/*" multiple style="display: none;">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Tamanhos e Estoque (Ex: P:10, M:15)</label>
+                <input type="text" id="prod-sizes" required>
+            </div>
+
+            <div class="form-row" style="margin-top: 10px;">
+                <button type="submit" class="btn-primary" id="submit-btn" style="flex: 1;">SALVAR PRODUTO</button>
+                <button type="button" id="cancel-edit-btn" class="btn-logout hidden" style="flex: 1;">CANCELAR EDIÇÃO</button>
+            </div>
+            
+            <p id="success-msg" class="success-msg hidden">Operação realizada com sucesso!</p>
+            <p id="error-msg" class="error-msg hidden">Erro. Verifique os dados.</p>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
