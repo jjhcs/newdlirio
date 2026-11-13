@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================
     // 4. NAVEGAÇÃO E MENUS
     // =========================================
-    headerElement.classList.add('header-hidden');
+    // headerElement.classList.add('header-hidden');
 
     function fecharMenu() {
         sidebar.classList.remove('active');

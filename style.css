@@ -103,10 +103,20 @@ button { font-family: inherit; }
    HERO SECTION (A ENTRADA)
    ========================================= */
 .hero {
-    height: 100vh; width: 100%;
-    background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1920&auto=format&fit=crop');
-    background-size: cover; background-position: center;
-    display: flex; align-items: center; justify-content: center;
+    height: 100vh; 
+    width: 100%;
+    
+    /* O segredo está aqui: o rgba(0,0,0, 0.8) cria uma camada preta com 80% de opacidade */
+    /* Você pode mudar o 0.8 para 0.9 se quiser mais escuro, ou 0.6 se quiser mais clara */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.9)), url('imgs/backgroud.webp');
+    
+    background-size: cover; 
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
 }
 
 .hero-content { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 50px; }
