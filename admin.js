@@ -1,14 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const SUPABASE_URL = 'https://brwcyaczsgdcmxotvbeo.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_Z8vt2f38fT8x9V3B_A7_GQ_WUv98mDH'; 
 
-    const { createClient } = supabase;
-    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+    // =========================================
+    // 1. CONEXÃO (cliente criado no script.js)
+    // =========================================
+    const supabaseClient = window.supabaseClient;
 
-    const loginScreen = document.getElementById('login-screen');
-    const adminPanel = document.getElementById('admin-panel');
-    const loginForm = document.getElementById('login-form');
-    const logoutBtn = document.getElementById('logout-btn');
+    // Elementos do Admin
+    const adminOverlay = document.getElementById('admin-overlay');
+    const closeAdminBtn = document.getElementById('close-admin-btn');
     const productForm = document.getElementById('product-form');
     const productList = document.getElementById('product-list');
     const formTitle = document.getElementById('form-title');
@@ -18,33 +17,77 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('prod-images-input');
 
     let produtosGlobais = [];
-    let imagensAtuais = { frente: '', verso: '', galeria: [] };
-    let novasImagensUpload = []; // Guarda os arquivos que o usuário arrastar antes de salvar
+    let ordemImagensTela = [];
     let sortableInstance = null;
 
-    // --- 1. LOGIN ---
-    supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (session) {
-            loginScreen.classList.add('hidden');
-            adminPanel.classList.remove('hidden');
-            carregarProdutosAdmin();
-        } else {
-            loginScreen.classList.remove('hidden');
-            adminPanel.classList.add('hidden');
+    // Recarrega a vitrine do site que está por baixo do painel
+    function atualizarVitrine() {
+        window.carregarProdutos();
+    }
+
+    // =========================================
+    // 2. LOGIN E ATALHO SECRETO (CTRL + SHIFT + L)
+    // =========================================
+    const loginScreen = document.getElementById('admin-login-screen');
+    const adminContent = document.getElementById('admin-content');
+    const loginForm = document.getElementById('admin-login-form');
+    const loginError = document.getElementById('admin-login-error');
+
+    // Só libera o conteúdo se houver sessão E o painel estiver aberto.
+    // (uma sessão salva de antes no navegador não pula mais o login)
+    supabaseClient.auth.onAuthStateChange((_event, session) => {
+        const liberado = !!session && !adminOverlay.classList.contains('hidden');
+        loginScreen.style.display = liberado ? 'none' : 'block';
+        adminContent.style.display = liberado ? 'block' : 'none';
+        if (liberado) carregarProdutosAdmin();
+    });
+
+    function abrirAdmin() {
+        // Sempre começa na tela de login, mesmo se já existir sessão salva
+        loginScreen.style.display = 'block';
+        adminContent.style.display = 'none';
+        adminOverlay.classList.remove('hidden');
+        supabaseClient.auth.signOut({ scope: 'local' }); // descarta a sessão salva neste navegador
+    }
+
+    function fecharAdmin() {
+        adminOverlay.classList.add('hidden');
+        supabaseClient.auth.signOut({ scope: 'local' }); // Logout ao fechar, por segurança
+    }
+
+    // Atalho Ctrl + Shift + L
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l') {
+            e.preventDefault();
+            if (adminOverlay.classList.contains('hidden')) {
+                abrirAdmin();
+            } else {
+                fecharAdmin();
+            }
         }
     });
 
+    closeAdminBtn.addEventListener('click', fecharAdmin);
+
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+        const email = document.getElementById('admin-email').value;
+        const password = document.getElementById('admin-password').value;
+
         const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) document.getElementById('login-error').classList.remove('hidden');
+
+        if (error) {
+            loginError.style.display = 'block';
+            setTimeout(() => loginError.style.display = 'none', 3000);
+        } else {
+            loginError.style.display = 'none';
+            loginForm.reset();
+        }
     });
 
-    logoutBtn.addEventListener('click', () => supabaseClient.auth.signOut());
-
-    // --- 2. LISTAR PRODUTOS ---
+    // =========================================
+    // 3. LISTAR PRODUTOS NO ADMIN
+    // =========================================
     async function carregarProdutosAdmin() {
         const { data, error } = await supabaseClient
             .from('produtos')
@@ -52,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .order('id', { ascending: false });
 
         if (error) return console.error(error);
-        
+
         produtosGlobais = data;
         renderizarListaAdmin(data);
     }
@@ -62,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         produtos.forEach(prod => {
             const status = prod.ativo ? 'Visível' : 'Oculto';
             const color = prod.ativo ? '#4dff88' : '#ff4d4d';
-            
+
             const div = document.createElement('div');
             div.className = 'admin-item';
             div.innerHTML = `
@@ -83,16 +126,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 3. AÇÕES ---
+    // =========================================
+    // 4. AÇÕES (OCULTAR, DELETAR, EDITAR)
+    // =========================================
     window.toggleVisibilidade = async (id, statusAtual) => {
         await supabaseClient.from('produtos').update({ ativo: !statusAtual }).eq('id', id);
         carregarProdutosAdmin();
+        atualizarVitrine();
     };
 
     window.deletarProduto = async (id) => {
         if (!confirm("Tem certeza que deseja apagar este produto?")) return;
         await supabaseClient.from('produtos').delete().eq('id', id);
         carregarProdutosAdmin();
+        atualizarVitrine();
     };
 
     window.prepararEdicao = (id) => {
@@ -105,145 +152,78 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('prod-category').value = prod.categoria;
         document.getElementById('prod-price').value = prod.preco;
         document.getElementById('prod-desc').value = prod.descricao || '';
-        
-        imagensAtuais = {
-            frente: prod.imagem_frente,
-            verso: prod.imagem_verso || '',
-            galeria: prod.galeria || []
-        };
-        novasImagensUpload = []; // Limpa novos uploads pendentes
+
+        ordemImagensTela = [];
+        if (prod.imagem_frente) ordemImagensTela.push({ tipo: 'url', dados: prod.imagem_frente });
+        if (prod.imagem_verso && prod.imagem_verso !== prod.imagem_frente) ordemImagensTela.push({ tipo: 'url', dados: prod.imagem_verso });
+        if (prod.galeria && prod.galeria.length > 0) {
+            prod.galeria.forEach(url => ordemImagensTela.push({ tipo: 'url', dados: url }));
+        }
 
         renderizarPreviewImagens();
 
-        const tamanhos = prod.variacoes.map(v => `${v.tamanho}:${v.estoque}`).join(', ');
-        document.getElementById('prod-sizes').value = tamanhos;
+        document.getElementById('prod-sizes').value = prod.variacoes.map(v => `${v.tamanho}:${v.estoque}`).join(', ');
 
         formTitle.textContent = "EDITANDO PRODUTO";
         cancelEditBtn.classList.remove('hidden');
-        window.scrollTo(0, document.body.scrollHeight);
+        adminOverlay.scrollTo(0, 0); // quem rola é o overlay, não a janela
     };
 
-    // --- 4. LÓGICA DO DRAG & DROP E MINIATURAS ---
-    
-    // Função que desenha as fotos atuais + os novos uploads pendentes
+    // =========================================
+    // 5. LÓGICA DE IMAGENS E DRAG & DROP
+    // =========================================
     function renderizarPreviewImagens() {
         previewContainer.innerHTML = '';
-        
-        let todasAsImagens = [];
-        
-        // Adiciona as imagens que já estão no banco
-        if (imagensAtuais.frente) todasAsImagens.push({ tipo: 'banco', url: imagensAtuais.frente });
-        if (imagensAtuais.verso && imagensAtuais.verso !== imagensAtuais.frente) todasAsImagens.push({ tipo: 'banco', url: imagensAtuais.verso });
-        imagensAtuais.galeria.forEach(url => todasAsImagens.push({ tipo: 'banco', url }));
 
-        // Adiciona os arquivos novos que ainda não foram salvos
-        novasImagensUpload.forEach((file, index) => {
-            const urlTemporaria = URL.createObjectURL(file);
-            todasAsImagens.push({ tipo: 'upload', url: urlTemporaria, fileIndex: index });
-        });
+        ordemImagensTela.forEach((item, index) => {
+            const urlVisual = item.tipo === 'url' ? item.dados : URL.createObjectURL(item.dados);
 
-        // Renderiza na tela
-        todasAsImagens.forEach((imgObj) => {
             const div = document.createElement('div');
             div.className = 'preview-item';
-            div.dataset.tipo = imgObj.tipo;
-            div.dataset.fileIndex = imgObj.fileIndex !== undefined ? imgObj.fileIndex : '';
-            div.dataset.url = imgObj.url;
-            
+            div.dataset.index = index;
+
             div.innerHTML = `
-                <img src="${imgObj.url}">
-                <button class="btn-remove-img" onclick="removerImagem(this)">X</button>
+                <img src="${urlVisual}">
+                <button class="btn-remove-img" type="button" onclick="removerImagem(this)">X</button>
             `;
             previewContainer.appendChild(div);
         });
 
-        // Ativa o Sortable (Arrastar e Soltar)
         if (sortableInstance) sortableInstance.destroy();
         sortableInstance = new Sortable(previewContainer, {
             animation: 150,
             ghostClass: 'sortable-ghost',
-            onEnd: function (evt) {
-                // Atualiza a ordem visual. A regra é: 1º é Frente, 2º é Verso, o resto é Galeria.
-                const itens = Array.from(previewContainer.children);
-                let novaFrente = '';
-                let novoVerso = '';
-                let novaGaleria = [];
-                let novosUploadsReordenados = [];
-
-                itens.forEach((item, posicao) => {
-                    const tipo = item.dataset.tipo;
-                    const url = item.dataset.url;
-                    const fileIndex = item.dataset.fileIndex;
-
-                    if (tipo === 'banco') {
-                        if (posicao === 0) novaFrente = url;
-                        else if (posicao === 1) novoVerso = url;
-                        else novaGaleria.push(url);
-                    } else if (tipo === 'upload') {
-                        const file = novasImagensUpload[fileIndex];
-                        // Se o arquivo novo for movido para a 1ª ou 2ª posição, ele assume como frente/verso
-                        if (posicao === 0) novaFrente = URL.createObjectURL(file); 
-                        else if (posicao === 1) novoVerso = URL.createObjectURL(file);
-                        else novaGaleria.push(URL.createObjectURL(file));
-                        
-                        novosUploadsReordenados.push(file);
-                    }
-                });
-
-                imagensAtuais.frente = novaFrente;
-                imagensAtuais.verso = novoVerso;
-                imagensAtuais.galeria = novaGaleria;
-                // Aqui ocorre um pequeno detalhe técnico: os arquivos novos que viraram frente/verso
-                // serão tratados no upload final.
-
+            onEnd: function () {
+                ordemImagensTela = Array.from(previewContainer.children)
+                    .map(itemDom => ordemImagensTela[parseInt(itemDom.dataset.index)]);
                 renderizarPreviewImagens();
             }
         });
     }
 
-    // Remove uma imagem da lista
     window.removerImagem = (btn) => {
-        const div = btn.parentElement;
-        const tipo = div.dataset.tipo;
-        const url = div.dataset.url;
-        const fileIndex = div.dataset.fileIndex;
-
-        if (tipo === 'upload') {
-            novasImagensUpload.splice(fileIndex, 1);
-        } else {
-            if (imagensAtuais.frente === url) imagensAtuais.frente = '';
-            else if (imagensAtuais.verso === url) imagensAtuais.verso = '';
-            else imagensAtuais.galeria = imagensAtuais.galeria.filter(g => g !== url);
-        }
+        const index = parseInt(btn.parentElement.dataset.index);
+        ordemImagensTela.splice(index, 1);
         renderizarPreviewImagens();
     };
 
-    // Eventos do Dropzone (Clique e Arrastar)
     dropZone.addEventListener('click', () => fileInput.click());
-
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-    });
-
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        adicionarNovasImagens(files);
+        adicionarNovasImagens(e.dataTransfer.files);
     });
-
     fileInput.addEventListener('change', (e) => {
         adicionarNovasImagens(e.target.files);
-        fileInput.value = ''; // Limpa o input para permitir selecionar o mesmo arquivo de novo
+        fileInput.value = '';
     });
 
     function adicionarNovasImagens(files) {
         for (let i = 0; i < files.length; i++) {
             if (files[i].type.startsWith('image/')) {
-                novasImagensUpload.push(files[i]);
+                ordemImagensTela.push({ tipo: 'file', dados: files[i] });
             }
         }
         renderizarPreviewImagens();
@@ -254,14 +234,23 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetarFormulario() {
         productForm.reset();
         document.getElementById('prod-id').value = '';
-        imagensAtuais = { frente: '', verso: '', galeria: [] };
-        novasImagensUpload = [];
+        ordemImagensTela = [];
         renderizarPreviewImagens();
         formTitle.textContent = "CADASTRAR NOVO PRODUTO";
         cancelEditBtn.classList.add('hidden');
     }
 
-    // --- 5. SALVAR ---
+    // =========================================
+    // 6. SALVAR PRODUTO (UPLOAD E BANCO)
+    // =========================================
+    async function uploadImagem(file) {
+        const fileName = `${Date.now()}-${file.name.replace(/\s/g, '')}`;
+        const { data, error } = await supabaseClient.storage.from('produtos').upload(fileName, file);
+        if (error) throw error;
+        const { data: urlData } = supabaseClient.storage.from('produtos').getPublicUrl(data.path);
+        return urlData.publicUrl;
+    }
+
     productForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = document.getElementById('submit-btn');
@@ -271,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const id = document.getElementById('prod-id').value;
             const isEditing = id !== '';
-            
+
             const nome = document.getElementById('prod-name').value;
             const sku = document.getElementById('prod-sku').value;
             const categoria = document.getElementById('prod-category').value;
@@ -279,41 +268,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const descricao = document.getElementById('prod-desc').value;
             const sizesString = document.getElementById('prod-sizes').value;
 
-            async function uploadImagem(file) {
-                const fileName = `${Date.now()}-${file.name.replace(/\s/g, '')}`;
-                const { data, error } = await supabaseClient.storage.from('produtos').upload(fileName, file);
-                if (error) throw error;
-                const { data: urlData } = supabaseClient.storage.from('produtos').getPublicUrl(data.path);
-                return urlData.publicUrl;
+            const urlsFinais = [];
+            for (const item of ordemImagensTela) {
+                if (item.tipo === 'url') urlsFinais.push(item.dados);
+                else urlsFinais.push(await uploadImagem(item.dados));
             }
 
-            // Variáveis que vão para o banco
-            let urlFront = imagensAtuais.frente;
-            let urlBack = imagensAtuais.verso;
-            let arrayGaleria = [...imagensAtuais.galeria];
-
-            // Faz o upload de todos os arquivos novos que estão na lista de "novasImagensUpload"
-            // Nota: A ordem visual foi mantida, mas simplificamos o upload para garantir que todos subam.
-            let todasNovasUrls = [];
-            for (let i = 0; i < novasImagensUpload.length; i++) {
-                const url = await uploadImagem(novasImagensUpload[i]);
-                todasNovasUrls.push(url);
-            }
-
-            // Como o usuário pode ter arrastado arquivos novos para a posição de Frente/Verso,
-            // vamos verificar se as URLs atuais são na verdade "blobs" temporários.
-            // Se o front/back estiverem vazios, pegamos do upload.
-            if (!urlFront && todasNovasUrls.length > 0) urlFront = todasNovasUrls.shift();
-            if (!urlBack && todasNovasUrls.length > 0) urlBack = todasNovasUrls.shift();
-            
-            // O restante entra na galeria
-            arrayGaleria = arrayGaleria.concat(todasNovasUrls);
-
-            const produtoData = { 
-                nome, sku, categoria, preco, descricao, 
-                imagem_frente: urlFront || '', 
-                imagem_verso: urlBack || urlFront || '',
-                galeria: arrayGaleria
+            const produtoData = {
+                nome, sku, categoria, preco, descricao,
+                imagem_frente: urlsFinais[0] || '',
+                imagem_verso: urlsFinais[1] || '',
+                galeria: urlsFinais.slice(2)
             };
 
             let produtoId = id;
@@ -336,11 +301,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const { error: sizeError } = await supabaseClient.from('variacoes').insert(sizesArray);
             if (sizeError) throw sizeError;
 
-            document.getElementById('success-msg').classList.remove('hidden');
-            setTimeout(() => document.getElementById('success-msg').classList.add('hidden'), 3000);
-            
+            const successMsg = document.getElementById('success-msg');
+            successMsg.classList.remove('hidden');
+            setTimeout(() => successMsg.classList.add('hidden'), 3000);
+
             resetarFormulario();
             carregarProdutosAdmin();
+            atualizarVitrine();
 
         } catch (error) {
             console.error(error);

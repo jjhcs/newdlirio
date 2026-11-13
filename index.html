@@ -14,7 +14,6 @@
     <!-- CABEÇALHO FIXO -->
     <header class="header">
         <div class="header-left">
-            <!-- O botão do menu só aparece na home/vitrine -->
             <button id="menu-btn" class="icon-btn">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -22,20 +21,18 @@
                     <line x1="3" y1="18" x2="21" y2="18"></line>
                 </svg>
             </button>
-            <!-- Seta de voltar (só aparece na página de produto) -->
             <button id="back-btn" class="icon-btn hidden">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </button>
         </div>
-        
+
         <div class="header-center">
-            <a href="#" id="logo-home-btn" class="logo-container">
+            <a href="#" id="logo-home-btn">
                 <img src="imgs/logo.svg" alt="Dlírio" class="logo-img">
             </a>
         </div>
 
-                <div class="header-right">
-            <!-- Ícone da Sacola (Apenas ele agora) -->
+        <div class="header-right">
             <button class="icon-btn cart-icon-btn" onclick="openCart()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
                 <span id="cart-badge" class="cart-badge hidden">0</span>
@@ -44,32 +41,27 @@
     </header>
 
     <!-- MENU LATERAL -->
-    <!-- MENU LATERAL -->
     <nav id="sidebar" class="sidebar">
         <button id="close-btn" class="close-btn">&times;</button>
         <div class="sidebar-content">
             <span class="nav-label">NAVEGAÇÃO</span>
             <ul class="nav-links">
                 <li><a href="#" class="btn-shop">TODOS</a></li>
-                <li><a href="#" class="btn-shop">CAMISETAS</a></li>
-                <li><a href="#" class="btn-shop">BERMUDAS</a></li>
-                <li><a href="#" class="btn-shop">TÊNIS</a></li>
+                <li><a href="#" class="btn-shop">Camisetas</a></li>
+                <li><a href="#" class="btn-shop">Bermudas</a></li>
+                <li><a href="#" class="btn-shop">Tênis</a></li>
             </ul>
-            
-            <!-- Divisor e Redes Sociais no Rodapé do Menu -->
+
             <div class="sidebar-footer">
                 <div class="sidebar-divider"></div>
-                                <div class="social-links">
-                    <!-- Instagram -->
-                    <a href="#" target="_blank" aria-label="Instagram">
+                <div class="social-links">
+                    <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
                     </a>
-                    <!-- TikTok -->
-                    <a href="#" target="_blank" aria-label="TikTok">
+                    <a href="#" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path></svg>
                     </a>
-                    <!-- WhatsApp Real -->
-                    <a href="#" target="_blank" aria-label="WhatsApp">
+                    <a href="#" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
                             <path d="M16 13c-.2-.1-1.2-.6-1.4-.7-.2-.1-.4-.1-.5.1-.1.2-.6.7-.7.9-.1.1-.3.1-.5 0-.2-.1-1-.4-1.9-1.2-.7-.6-1.1-1.3-1.3-1.5-.1-.2 0-.3.1-.4.1-.1.2-.3.4-.4.1-.1.2-.3.2-.4.1-.1 0-.3 0-.4-.1-.2-.6-1.4-.8-1.9-.2-.5-.5-.4-.7-.4h-.6c-.2 0-.5.1-.8.4-.3.3-1.1 1.1-1.1 2.6s1.1 3 1.3 3.2c.2.2 2.2 3.4 5.3 4.7 2.6 1.1 3.1.9 3.7.8.6-.1 1.9-.8 2.2-1.5.3-.8.3-1.4.2-1.5-.1-.2-.3-.2-.5-.3z"></path>
@@ -83,22 +75,20 @@
 
     <!-- VIEW 1: HOME + VITRINE -->
     <div id="home-shop-view">
-    <section class="hero" id="home-view">
-        <div class="hero-content">
-            <!-- Coluna da Esquerda (Logo) -->
-            <div class="hero-left">
-                <img src="imgs/logo.svg" alt="Dlírio" class="hero-logo">
+        <section class="hero" id="home-view">
+            <div class="hero-content">
+                <div class="hero-left">
+                    <img src="imgs/logo.svg" alt="Dlírio" class="hero-logo">
+                </div>
+                <div class="hero-right">
+                    <p class="hero-date" id="current-date">CARREGANDO...</p>
+                    <button id="btn-all-products" class="btn-primary">TODOS OS PRODUTOS</button>
+                </div>
             </div>
-
-            <!-- Coluna da Direita (Data e Botão) -->
-            <div class="hero-right">
-                <p class="hero-date" id="current-date">CARREGANDO...</p>
-                <button id="btn-all-products" class="btn-primary">TODOS OS PRODUTOS</button>
-            </div>
-        </div>
-    </section>
+        </section>
 
         <main id="shop-view" class="shop-section hidden">
+            <!-- O conteúdo é repetido de propósito: o loop contínuo da animação depende disso -->
             <div class="marquee-container">
                 <div class="marquee-content">
                     <span>FRETE GRÁTIS ACIMA DE R$ 300</span><span>•</span>
@@ -110,58 +100,41 @@
                 </div>
             </div>
 
-            <!-- GRID DE PRODUTOS -->
             <div class="product-grid">
-                
+                <!-- Produtos injetados via JS -->
             </div>
         </main>
     </div>
 
-    <!-- VIEW 2: PÁGINA DE PRODUTO (ESCONDIDA INICIALMENTE) -->
+    <!-- VIEW 2: PÁGINA DE PRODUTO -->
     <main id="product-view" class="product-container hidden">
         <div class="product-gallery">
             <div class="main-image-container">
-                <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1000&auto=format&fit=crop" alt="Produto" class="main-image" id="main-image">
+                <img src="" alt="Produto" class="main-image" id="main-image">
             </div>
-            <div class="thumbnail-list">
-                <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=200&auto=format&fit=crop" alt="Miniatura 1" class="thumbnail active" onclick="changeImage(this.src)">
-                <img src="https://images.unsplash.com/photo-1578587018452-892bacefd3f2?q=80&w=200&auto=format&fit=crop" alt="Miniatura 2" class="thumbnail" onclick="changeImage(this.src)">
-            </div>
+            <div class="thumbnail-list"></div>
         </div>
 
         <div class="product-details">
-            <h1 class="product-name">MOLETOM COM CAPUZ E ZÍPER COM ESTAMPA PUFF ISLAND [PRETO]</h1>
-            <p class="product-price-large">R$ 349,90</p>
+            <h1 class="product-name"></h1>
+            <p class="product-price-large"></p>
 
             <div class="selector-group">
                 <span class="selector-label">TAMANHO</span>
-                <div class="size-options">
-                    <button class="size-btn">P</button>
-                    <button class="size-btn">M</button>
-                    <button class="size-btn">G</button>
-                    <button class="size-btn">GG</button>
-                </div>
+                <div class="size-options"></div>
             </div>
 
             <button class="btn-add-to-cart">SELECIONE O TAMANHO</button>
 
-            <div class="accordion">
-                <div class="accordion-item">
-                    <button class="accordion-header" onclick="toggleAccordion(this)">DETALHES <span class="accordion-icon">+</span></button>
-                    <div class="accordion-content"><p>Moletom com capuz, zíper frontal. Modelagem oversized. 100% algodão.</p></div>
-                </div>
-                <div class="accordion-item">
-                    <button class="accordion-header" onclick="toggleAccordion(this)">GUIA DE TAMANHOS <span class="accordion-icon">+</span></button>
-                    <div class="accordion-content"><p>P: 60cm x 68cm<br>M: 63cm x 71cm<br>G: 66cm x 74cm<br>GG: 69cm x 77cm</p></div>
-                </div>
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion(this)">DETALHES <span class="accordion-icon">+</span></button>
+                <div class="accordion-content"><p>Detalhes do produto...</p></div>
             </div>
         </div>
     </main>
 
-        <!-- OVERLAY DO CARRINHO (Fundo Desfocado) -->
+    <!-- CARRINHO LATERAL -->
     <div id="cart-overlay" class="cart-overlay"></div>
-
-    <!-- PAINEL DO CARRINHO LATERAL -->
     <aside id="cart-sidebar" class="cart-sidebar">
         <div class="cart-header">
             <h2>SEU CARRINHO</h2>
@@ -172,30 +145,123 @@
                 </button>
             </div>
         </div>
-
         <div class="cart-items-container" id="cart-items-container">
-            <!-- Os produtos vão ser injetados aqui pelo JavaScript -->
             <p class="empty-cart-msg">Seu carrinho está vazio.</p>
         </div>
-
         <div class="cart-footer">
             <div class="cart-subtotal">
                 <span>Subtotal</span>
                 <span id="cart-total-price">R$ 0,00</span>
             </div>
-            
             <label class="cart-terms">
                 <input type="checkbox" id="terms-checkbox">
                 <span>Concordo com os termos e condições.</span>
             </label>
-
             <div class="cart-actions">
                 <button class="btn-cart-outline" onclick="closeCart()">VOLTAR</button>
                 <button class="btn-cart-solid" id="checkout-btn" disabled>FINALIZAR</button>
             </div>
         </div>
     </aside>
+
+    <!-- PAINEL ADMIN (Escondido) -->
+    <div id="admin-overlay" class="admin-overlay hidden">
+        <div class="admin-container">
+
+            <div class="admin-topbar">
+                <button id="close-admin-btn" class="btn-close-admin">FECHAR PAINEL</button>
+            </div>
+
+            <!-- TELA DE LOGIN (bloqueia o acesso) -->
+            <div id="admin-login-screen" class="admin-login">
+                <h2>ACESSO RESTRITO</h2>
+                <form id="admin-login-form">
+                    <input type="email" id="admin-email" placeholder="E-mail" required>
+                    <input type="password" id="admin-password" placeholder="Senha" required>
+                    <button type="submit" class="btn-primary">ENTRAR</button>
+                    <p id="admin-login-error" class="login-error">E-mail ou senha incorretos.</p>
+                </form>
+            </div>
+
+            <!-- CONTEÚDO DO ADMIN (só aparece depois do login) -->
+            <div id="admin-content" style="display: none;">
+                <div class="admin-header">
+                    <h2>GERENCIAR PRODUTOS</h2>
+                </div>
+
+                <h3 class="admin-subtitle">PRODUTOS CADASTRADOS</h3>
+                <div id="product-list" class="admin-product-list"></div>
+
+                <hr>
+
+                <h3 class="admin-subtitle" id="form-title">CADASTRAR NOVO PRODUTO</h3>
+                <form id="product-form">
+                    <input type="hidden" id="prod-id">
+
+                    <div class="form-group">
+                        <label>Código SKU</label>
+                        <input type="text" id="prod-sku" placeholder="Ex: TN-ROS-001">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nome do Produto</label>
+                        <input type="text" id="prod-name" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Categoria</label>
+                            <select id="prod-category" required>
+                                <option value="Camisetas">Camisetas</option>
+                                <option value="Bermudas">Bermudas</option>
+                                <option value="Tênis">Tênis</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Preço (R$)</label>
+                            <input type="number" step="0.01" id="prod-price" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descrição</label>
+                        <textarea id="prod-desc" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fotos do Produto (Arraste para reordenar)</label>
+                        <div id="current-images-preview" class="preview-container"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Adicionar Fotos</label>
+                        <div id="drop-zone" class="drop-zone">
+                            <span>Arraste fotos aqui ou <strong>clique para selecionar</strong></span>
+                            <input type="file" id="prod-images-input" accept="image/*" multiple hidden>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tamanhos e Estoque (Ex: P:10, M:15)</label>
+                        <input type="text" id="prod-sizes" required>
+                    </div>
+
+                    <div class="form-row form-actions">
+                        <button type="submit" class="btn-primary" id="submit-btn">SALVAR PRODUTO</button>
+                        <button type="button" id="cancel-edit-btn" class="btn-logout hidden">CANCELAR EDIÇÃO</button>
+                    </div>
+
+                    <p id="success-msg" class="success-msg hidden">Operação realizada com sucesso!</p>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
+    <script src="admin.js"></script>
 </body>
 </html>
