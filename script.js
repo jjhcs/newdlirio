@@ -2,17 +2,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // =========================================
     // 1. CONEXÃO COM O SUPABASE
-    // (cliente único: o admin.js reaproveita window.supabaseClient)
     // =========================================
     const SUPABASE_URL = 'https://brwcyaczsgdcmxotvbeo.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_Z8vt2f38fT8x9V3B_A7_GQ_WUv98mDH';
 
     const { createClient } = supabase;
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
-    window.supabaseClient = supabaseClient;
+    window.supabaseClient = supabaseClient; // Reaproveitado pelo admin.js
 
-    // Estado
-    let cart = [];
+    // Estado (Carregando do localStorage se existir)
+    let cart = JSON.parse(localStorage.getItem('dlirio_cart')) || [];
     let produtosGlobais = [];
     let filtroAtual = 'TODOS';
     let produtoAtual = null;
@@ -145,7 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================
     // 5. PÁGINA DE PRODUTO
     // =========================================
-    // Estado visual do botão "adicionar ao carrinho"
     function setBotaoCarrinho(pronto) {
         addToCartBtn.textContent = pronto ? 'ADICIONAR AO CARRINHO' : 'SELECIONE O TAMANHO';
         addToCartBtn.style.backgroundColor = pronto ? 'var(--pink-accent)' : 'transparent';
@@ -239,7 +237,6 @@ document.addEventListener('DOMContentLoaded', () => {
         aplicarFiltro();
     });
 
-    // Detalhes (acordeão) - o HTML chama toggleAccordion(), que não existia
     window.toggleAccordion = function(btn) {
         const content = btn.nextElementSibling;
         const icon = btn.querySelector('.accordion-icon');
@@ -285,7 +282,6 @@ document.addEventListener('DOMContentLoaded', () => {
         openCart();
     });
 
-    // "Finalizar" só habilita com itens no carrinho E termos aceitos
     function atualizarBotaoFinalizar() {
         checkoutBtn.disabled = !termsCheckbox.checked || cart.length === 0;
     }
@@ -305,6 +301,9 @@ document.addEventListener('DOMContentLoaded', () => {
             countEl.textContent = '0 ITENS';
             cartBadge.classList.add('hidden');
             atualizarBotaoFinalizar();
+            
+            // Salva o carrinho vazio
+            localStorage.setItem('dlirio_cart', JSON.stringify(cart));
             return;
         }
 
@@ -338,6 +337,9 @@ document.addEventListener('DOMContentLoaded', () => {
         cartBadge.textContent = totalItems;
         cartBadge.classList.remove('hidden');
         atualizarBotaoFinalizar();
+
+        // Salva o carrinho atualizado no localStorage
+        localStorage.setItem('dlirio_cart', JSON.stringify(cart));
     }
 
     window.updateQty = function(index, change) {
@@ -357,4 +359,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateDate();
     setInterval(updateDate, 60000);
+
+    // =========================================
+    // 8. INICIALIZAÇÃO DO CARRINHO (RESTAURA AO F5)
+    // =========================================
+    renderCart();
 });
