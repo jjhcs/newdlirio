@@ -147,8 +147,33 @@ document.addEventListener('DOMContentLoaded', () => {
         aplicarFiltro();
     }
 
-    document.getElementById('btn-all-products').addEventListener('click', (e) => showShop(e, 'TODOS'));
+    document.getElementById('btn-all-products').addEventListener('click', (e) => {
+        e.target.setAttribute('data-timer-iniciado', 'true'); 
+        
+        // Aplica a animação de saída
+        homeView.classList.add('anim-slide-out-left');
+        
+        setTimeout(() => {
+            homeView.classList.add('hidden');
+            homeView.classList.remove('anim-slide-out-left');
+            
+            shopView.classList.remove('hidden');
+            headerElement.classList.remove('header-hidden');
+            
+            shopView.classList.add('anim-slide-in-right');
+            window.scrollTo(0, 0);
+            fecharMenu();
 
+            filtroAtual = 'TODOS';
+            aplicarFiltro();
+
+            setTimeout(() => {
+                shopView.classList.remove('anim-slide-in-right');
+            }, 600);
+
+        }, 600);
+    });
+    
     document.querySelectorAll('.btn-shop').forEach(link => {
         link.addEventListener('click', (e) => showShop(e, link.textContent.trim()));
     });
@@ -520,21 +545,39 @@ document.addEventListener('DOMContentLoaded', () => {
             }).observe(homeView, { attributes: true, attributeFilter: ['class'] });
         }
     })();
-        // =========================================
-    // TIMER INTELIGENTE DA HERO (2 SEGUNDOS)
     // =========================================
-    // Só roda se o usuário estiver na página inicial (index.html) sem parâmetros
+    // TIMER INTELIGENTE COM TRANSIÇÃO (EFEITO CAPCUT)
+    // =========================================
     if (!window.location.search && homeView && !homeView.classList.contains('hidden')) {
         setTimeout(() => {
-            // Verifica se o usuário ainda está na Home (não clicou no botão e não navegou)
             const botao = document.getElementById('btn-all-products');
             const jaClicou = botao.getAttribute('data-timer-iniciado') === 'true';
             
             if (!homeView.classList.contains('hidden') && !jaClicou) {
-                // Simula o clique no botão de produtos
-                botao.click();
-            }
-        }, 2000); // 2000 milissegundos = 2 segundos
-    }
+                
+                // 1. Aplica a animação de saída na Hero
+                homeView.classList.add('anim-slide-out-left');
+                
+                // 2. Espera 600ms (tempo da animação) para trocar as telas
+                setTimeout(() => {
+                    // Remove as classes para resetar o estado
+                    homeView.classList.add('hidden');
+                    homeView.classList.remove('anim-slide-out-left');
+                    
+                    // Prepara a vitrine para entrar
+                    shopView.classList.remove('hidden');
+                    headerElement.classList.remove('header-hidden');
+                    
+                    // Aplica a animação de entrada na Vitrine
+                    shopView.classList.add('anim-slide-in-right');
+                    
+                    // Limpa a classe de animação depois que ela terminar
+                    setTimeout(() => {
+                        shopView.classList.remove('anim-slide-in-right');
+                    }, 600);
 
-}); // fecha o DOMContentLoaded
+                }, 600); // Tempo igual ao da animação do CSS
+                
+            }
+        }, 2000); // 2000 milissegundos = 2 segundos de espera
+}}); // fecha o DOMContentLoaded
