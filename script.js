@@ -364,4 +364,122 @@ document.addEventListener('DOMContentLoaded', () => {
     // 8. INICIALIZAÇÃO DO CARRINHO (RESTAURA AO F5)
     // =========================================
     renderCart();
-});
+
+    // =========================================
+// 9. EFEITO DE FOGO NA HERO (WEBGL)
+// =========================================
+(function initFireEffect() {
+    const canvas = document.getElementById('fire-canvas');
+    if (!canvas) return;
+
+    // Se o usuário preferir menos movimento (acessibilidade), não renderiza
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.3 : 1;
+    
+    // Reduz a resolução para performance (0.5 = metade da tela)
+    const SCALE = 0.5; 
+
+    const gl = canvas.getContext('webgl', { antialias: false, alpha: false });
+    if (!gl) return; // Fallback silencioso se não suportar WebGL
+
+    let running = false, raf = 0, t0 = performance.now(), uR, uT;
+
+    // Vertex Shader (padrão para desenhar um quadrado)
+    const VS = 'attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}';
+    
+    // Fragment Shader (O Fogo)
+    const FS = `
+    #ifdef GL_FRAGMENT_PRECISION_HIGH
+    precision highp float;
+    #else
+    precision mediump float;
+    #endif
+    uniform vec2 r; uniform float t;
+    float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+    float n(vec2 p){
+      vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f);
+      return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),f.x),f.y);
+    }
+    float fbm(vec2 p){
+      float v=0.,a=.5;
+      for(int i=0;i<4;i++){v+=a*n(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}
+      return v;
+    }
+    void main(){
+      vec2 uv=gl_FragCoord.xy/r;
+      vec2 p=vec2(uv.x*r.x/r.y,uv.y)*1.6;
+      float T=t*.12;
+      vec2 q=vec2(fbm(p+vec2(0.,-T*2.)),fbm(p+vec2(5.2,1.3-T)));
+      vec2 w=vec2(fbm(p+2.5*q+vec2(1.7,9.2)+T*.5),fbm(p+2.5*q+vec2(8.3,2.8)-T*.4));
+      float f=fbm(p+2.5*w);
+      float k=1.-uv.y*1.15+(f-.5)*.7+.05*sin(t*.8);
+      vec3 c=mix(vec3(0.),vec3(.28,.03,.14),smoothstep(.15,.55,k));
+      c=mix(c,vec3(.78,.14,.42),smoothstep(.5,.95,k));
+      c=mix(c,vec3(.98,.58,.82),smoothstep(.9,1.35,k)*.9);
+      c=mix(c,vec3(.68,.5,.92),smoothstep(.55,1.,uv.x)*smoothstep(.3,0.,uv.y)*(.4+.6*w.x));
+      c+=(h(gl_FragCoord.xy+t)-.5)/110.;
+      gl_FragColor=vec4(c,1.);
+    }`;
+
+    function sh(type, src) {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src); gl.compileShader(s);
+        return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+    }
+
+    function init() {
+        const vs = sh(gl.VERTEX_SHADER, VS), fs = sh(gl.FRAGMENT_SHADER, FS);
+        if (!vs || !fs) return false;
+        const pg = gl.createProgram();
+        gl.attachShader(pg, vs); gl.attachShader(pg, fs); gl.linkProgram(pg);
+        if (!gl.getProgramParameter(pg, gl.LINK_STATUS)) return false;
+        gl.useProgram(pg);
+        gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+        const a = gl.getAttribLocation(pg, 'a');
+        gl.enableVertexAttribArray(a);
+        gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+        uR = gl.getUniformLocation(pg, 'r');
+        uT = gl.getUniformLocation(pg, 't');
+        return true;
+    }
+
+    function resize() {
+        canvas.width  = Math.max(1, Math.floor(innerWidth  * SCALE));
+        canvas.height = Math.max(1, Math.floor(innerHeight * SCALE));
+        gl.viewport(0, 0, canvas.width, canvas.height);
+    }
+
+    function frame(now) {
+        if (!running) return;
+        gl.uniform2f(uR, canvas.width, canvas.height);
+        gl.uniform1f(uT, (now - t0) / 1000 * calm);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        raf = requestAnimationFrame(frame);
+    }
+
+    function start() {
+        if (running) return;
+        running = true; raf = requestAnimationFrame(frame);
+    }
+    function stop() { running = false; cancelAnimationFrame(raf); }
+
+    if (init()) {
+        resize(); 
+        addEventListener('resize', resize); 
+        start();
+        
+        // Pausa a animação se o usuário sair da tela da Home (economiza recursos)
+        const observer = new MutationObserver(() => {
+            const homeView = document.getElementById('home-view');
+            if (homeView.classList.contains('hidden')) {
+                stop();
+            } else {
+                start();
+            }
+        });
+
+        observer.observe(document.getElementById('home-view'), { attributes: true, attributeFilter: ['class'] });
+    }        
+    
+})();        
+});          // fecha o DOMContentLoaded
