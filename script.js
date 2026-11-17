@@ -520,5 +520,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }).observe(homeView, { attributes: true, attributeFilter: ['class'] });
         }
     })();
+        // =========================================
+    // TIMER INTELIGENTE DA HERO (2 SEGUNDOS)
+    // =========================================
+    // Só roda se o usuário estiver na página inicial (index.html) sem parâmetros
+    if (!window.location.search && homeView && !homeView.classList.contains('hidden')) {
+        setTimeout(() => {
+            // Verifica se o usuário ainda está na Home (não clicou no botão e não navegou)
+            const botao = document.getElementById('btn-all-products');
+            const jaClicou = botao.getAttribute('data-timer-iniciado') === 'true';
+            
+            if (!homeView.classList.contains('hidden') && !jaClicou) {
+                // Simula o clique no botão de produtos
+                botao.click();
+            }
+        }, 2000); // 2000 milissegundos = 2 segundos
+    }
 
 }); // fecha o DOMContentLoaded
