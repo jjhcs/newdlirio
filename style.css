@@ -509,6 +509,8 @@ button { font-family: inherit; }
    ========================================= */
 @media (max-width: 1024px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
 
+
+
 @media (max-width: 768px) {
     /* =========================================
        CORREÇÃO GERAL DE LARGURA (EVITA ROLAGEM LATERAL)
