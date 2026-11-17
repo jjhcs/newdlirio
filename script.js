@@ -39,6 +39,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const formatarPreco = (valor) => `R$ ${valor.toFixed(2).replace('.', ',')}`;
 
     // =========================================
+    // VERIFICA SE O USUÁRIO VEIO DA LOGO DO SUPORTE
+    // =========================================
+    if (window.location.search.includes('loja=true')) {
+        // Se veio, abre a vitrine pulando a Hero
+        headerElement.classList.remove('header-hidden');
+        homeView.classList.add('hidden');
+        shopView.classList.remove('hidden');
+        
+        // Limpa a URL para não bugar se der F5
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    // =========================================
     // 2. BUSCAR PRODUTOS DO SUPABASE
     // =========================================
     window.carregarProdutos = async function() {
@@ -225,18 +238,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     logoHomeBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        if (!productView.classList.contains('hidden')) goBackToShop();
 
-        shopView.classList.add('hidden');
-        homeView.classList.remove('hidden');
+        // 1. Se estiver na página de um produto específico, volta para a vitrine
+        if (!productView.classList.contains('hidden')) {
+            goBackToShop();
+            return; // Para a execução aqui e não vai para a Hero
+        }
 
-        headerElement.classList.add('header-hidden');
-        window.scrollTo(0, 0);
+        // 2. Se estiver na vitrine (shop-view), volta para a Hero (Tela Inicial)
+        if (!shopView.classList.contains('hidden')) {
+            shopView.classList.add('hidden');
+            homeView.classList.remove('hidden');
+            headerElement.classList.add('header-hidden');
+            window.scrollTo(0, 0);
+            
+            filtroAtual = 'TODOS';
+            aplicarFiltro();
+            return;
+        }
 
-        filtroAtual = 'TODOS';
-        aplicarFiltro();
+        // 3. Se já estiver na Hero, apenas rola para o topo (segurança)
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-
     window.toggleAccordion = function(btn) {
         const content = btn.nextElementSibling;
         const icon = btn.querySelector('.accordion-icon');
@@ -251,11 +274,15 @@ document.addEventListener('DOMContentLoaded', () => {
     window.openCart = function() {
         cartSidebar.classList.add('active');
         cartOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Trava o scroll do fundo
     };
+
     window.closeCart = function() {
         cartSidebar.classList.remove('active');
         cartOverlay.classList.remove('active');
-    };
+        document.body.style.overflow = ''; // Libera o scroll
+    };    
+    
     closeCartBtn.addEventListener('click', closeCart);
     cartOverlay.addEventListener('click', closeCart);
 
@@ -481,5 +508,5 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(document.getElementById('home-view'), { attributes: true, attributeFilter: ['class'] });
     }        
     
-})();        
+})();     
 });          // fecha o DOMContentLoaded

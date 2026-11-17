@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trocas e Devoluções | D LÍRIO</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="header" style="position: relative; background: #000;">
+        <div class="header-left">
+            <a href="index.html" class="icon-btn" aria-label="Voltar" onclick="if (document.referrer.includes(window.location.host)) { history.back(); return false; }">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </a>
+        </div>
+
+        <div class="header-center">
+            <a href="index.html?loja=true">
+                <img src="imgs/logo.svg" alt="D Lírio" class="logo-img">
+            </a>
+        </div>
+
+        <div class="header-right">
+            <button class="icon-btn cart-icon-btn" aria-label="Carrinho">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="info-container-page">
+        <div class="info-content">
+            <h1>Trocas e Devoluções</h1>
+            <p>Queremos que você tenha a melhor experiência com as peças da D LÍRIO. Confira nossas condições:</p>
+            
+            <div class="faq-item">
+                <h3>Prazo para solicitação</h3>
+                <p>Você tem até <strong>7 dias corridos</strong> após o recebimento do pedido para solicitar a troca por tamanho/modelo ou a devolução por arrependimento, conforme o Código de Defesa do Consumidor.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Condições da peça</h3>
+                <p>O produto deve ser enviado na embalagem original, com todas as etiquetas fixadas, sem indícios de uso, lavagem, odores ou alterações feitas pelo cliente.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Como solicitar</h3>
+                <p>Entre em contato pelo nosso WhatsApp ou e-mail informando o <strong>número do pedido</strong>, o item que deseja trocar/devolver e o motivo. Nossa equipe enviará o código de postagem reversa.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Reembolso e Vale-Compras</h3>
+                <p>Assim que a peça retornar ao nosso estoque e passar pela análise de qualidade (até 3 dias úteis), liberamos um vale-compras no valor do produto ou realizamos o estorno conforme o método de pagamento utilizado.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-columns">
+            <div class="footer-col">
+                <h4>ATENDIMENTO</h4>
+                <ul>
+                    <li><a href="central-ajuda.html">Central de Ajuda</a></li>
+                    <li><a href="trocas.html">Trocas e Devoluções</a></li>
+                    <li><a href="prazos.html">Prazos de Entrega</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>INSTITUCIONAL</h4>
+                <ul>
+                    <li><a href="sobre.html">Sobre a D Lírio</a></li>
+                    <li><a href="termos.html">Termos de Uso</a></li>
+                    <li><a href="privacidade.html">Política de Privacidade</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>CONTATO</h4>
+                <p>contato@dlirio.com.br</p>
+                <p>Seg a Sex, das 9h às 18h</p>
+                <p><a href="https://wa.me/5541984380355" target="_blank" rel="noopener noreferrer">WhatsApp: (41) 98438-0355</a></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 D LÍRIO. TODOS OS DIREITOS RESERVADOS.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

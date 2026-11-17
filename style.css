@@ -31,8 +31,18 @@ button { font-family: inherit; }
     position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
     opacity: 0; visibility: hidden; transition: all 0.4s;
 }
-.overlay { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px); z-index: 1500; }
-.cart-overlay { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); z-index: 3000; }
+.overlay {
+    background: rgba(0, 0, 0, 0.85); /* Escurece mais para compensar o blur */
+    /* backdrop-filter: blur(3px);  <-- REMOVA OU COMENTE ISSO */
+    z-index: 1500;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.cart-overlay { 
+    background: rgba(0, 0, 0, 0.85); /* Escurece mais o fundo */
+    /* backdrop-filter: blur(8px);  <-- REMOVIDO PARA MELHORAR PERFORMANCE */
+    z-index: 3000; 
+}
+
 .overlay.active, .cart-overlay.active { opacity: 1; visibility: visible; }
 
 /* =========================================
@@ -43,8 +53,8 @@ button { font-family: inherit; }
     top: 0; left: 0; width: 100%; height: 80px;
     display: flex; justify-content: space-between; align-items: center;
     padding: 0 40px;
-    background: rgba(0,0,0,0.8);
-    backdrop-filter: blur(10px);
+    background: #000000; /* <-- Preto sólido aqui */
+    /* backdrop-filter: blur(10px); <-- Apague essa linha */
     z-index: 1000;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     transition: transform 0.4s ease, opacity 0.4s ease;
@@ -74,11 +84,18 @@ button { font-family: inherit; }
 .sidebar {
     position: fixed; top: 0; left: 0; width: 350px; height: 100vh;
     background-color: var(--bg-color); z-index: 2000;
-    transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+    
+    /* Otimização de GPU */
+    transform: translate3d(-100%, 0, 0); /* Substitui o translateX */
+    will-change: transform; 
+    transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+    
     padding: 60px 40px;
 }
 
-.sidebar.active { transform: translateX(0); }
+.sidebar.active { 
+    transform: translate3d(0, 0, 0); 
+}
 
 .close-btn {
     position: absolute; top: 20px; right: 30px;
@@ -237,8 +254,21 @@ button { font-family: inherit; }
 /* =========================================
    CARRINHO LATERAL
    ========================================= */
-.cart-sidebar { position: fixed; top: 0; right: 0; width: 450px; height: 100vh; background-color: #0a0a0a; z-index: 3001; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1); display: flex; flex-direction: column; border-left: 1px solid rgba(255, 255, 255, 0.05); }
-.cart-sidebar.active { transform: translateX(0); }
+.cart-sidebar { 
+    position: fixed; top: 0; right: 0; width: 450px; height: 100vh; 
+    background-color: #0a0a0a; z-index: 3001; 
+    
+    /* Otimização de GPU para deslizar suave */
+    transform: translate3d(100%, 0, 0); 
+    will-change: transform;
+    transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1); 
+    
+    display: flex; flex-direction: column; border-left: 1px solid rgba(255, 255, 255, 0.05); 
+}
+
+.cart-sidebar.active { 
+    transform: translate3d(0, 0, 0); 
+}
 .cart-header { padding: 25px 30px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); display: flex; justify-content: space-between; align-items: center; }
 .cart-header h2 { font-size: 0.9rem; letter-spacing: 2px; font-weight: 600; }
 .cart-header-right { display: flex; align-items: center; gap: 15px; }
@@ -379,3 +409,161 @@ button { font-family: inherit; }
 }
 
 @media (max-width: 500px) { .cart-sidebar { width: 100%; } }
+
+/* =========================================
+   RODAPÉ (FOOTER)
+   ========================================= */
+.site-footer {
+    margin-top: 100px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background-color: #050505;
+    padding: 60px 40px 20px;
+}
+
+.footer-columns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    max-width: 1400px;
+    margin: 0 auto 40px;
+}
+
+.footer-col h4 {
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+}
+
+.footer-col ul { list-style: none; }
+.footer-col ul li { margin-bottom: 12px; }
+.footer-col a, .footer-col p {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+.footer-col a:hover { color: var(--pink-accent); }
+
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+.footer-bottom p {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+}
+
+/* =========================================
+   PÁGINAS INSTITUCIONAIS (SUPORTE)
+   ========================================= */
+.info-page {
+    min-height: 100vh;
+    padding: 120px 40px 60px;
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: center;
+}
+
+.info-container {
+    max-width: 800px;
+    width: 100%;
+}
+
+.btn-back-text {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    margin-bottom: 40px;
+    transition: color 0.3s;
+}
+.btn-back-text:hover { color: var(--pink-accent); }
+
+.info-content h1 {
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.info-content p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.8;
+    margin-bottom: 20px;
+}
+
+.faq-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px 0;
+}
+.faq-item h3 {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+.faq-item p { margin-bottom: 0; }
+
+@media (max-width: 768px) {
+    .footer-columns { grid-template-columns: 1fr; gap: 30px; }
+    .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
+}
+
+/* =========================================
+   PÁGINAS DE SUPORTE (Arquivos separados)
+   ========================================= */
+.info-container-page {
+    min-height: 80vh;
+    padding: 120px 40px 60px;
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: center;
+}
+
+.info-content {
+    max-width: 800px;
+    width: 100%;
+}
+
+.btn-back-text {
+    display: inline-block;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    text-decoration: none;
+    margin-bottom: 40px;
+    transition: color 0.3s;
+}
+.btn-back-text:hover { color: var(--pink-accent); }
+
+.info-content h1 {
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.info-content p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.8;
+    margin-bottom: 20px;
+}
+
+.faq-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px 0;
+}
+.faq-item h3 {
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prazos de Entrega | D LÍRIO</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="header" style="position: relative; background: #000;">
+        <div class="header-left">
+            <a href="index.html" class="icon-btn" aria-label="Voltar" onclick="if (document.referrer.includes(window.location.host)) { history.back(); return false; }">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </a>
+        </div>
+
+        <div class="header-center">
+            <a href="index.html?loja=true">
+                <img src="imgs/logo.svg" alt="D Lírio" class="logo-img">
+            </a>
+        </div>
+
+        <div class="header-right">
+            <button class="icon-btn cart-icon-btn" aria-label="Carrinho">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="info-container-page">
+        <div class="info-content">
+            <h1>Prazos de Entrega</h1>
+            <p>Saiba como funciona o envio e o prazo para o seu pedido chegar até você.</p>
+            
+            <div class="faq-item">
+                <h3>Preparação e Despacho</h3>
+                <p>Após a confirmação do pagamento, seu pedido passa pela separação e embalagem em até <strong>2 dias úteis</strong>. Pagamentos via PIX ou Cartão de Crédito costumam ser aprovados na hora.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Cálculo do Prazo</h3>
+                <p>O prazo total de entrega varia de acordo com o seu CEP e a modalidade escolhida (Correios PAC, Sedex ou Transportadora). Você pode simular o tempo exato diretamente no carrinho antes de finalizar a compra.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Código de Rastreamento</h3>
+                <p>Assim que a encomenda for coletada pela transportadora, o código de rastreio será enviado automaticamente para o seu e-mail cadastrado.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Tentativas de Entrega</h3>
+                <p>São realizadas até 3 tentativas de entrega no endereço informado. Caso não haja ninguém para receber, o pedido poderá ficar disponível para retirada na agência mais próxima ou retornar ao nosso centro de distribuição.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-columns">
+            <div class="footer-col">
+                <h4>ATENDIMENTO</h4>
+                <ul>
+                    <li><a href="central-ajuda.html">Central de Ajuda</a></li>
+                    <li><a href="trocas.html">Trocas e Devoluções</a></li>
+                    <li><a href="prazos.html">Prazos de Entrega</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>INSTITUCIONAL</h4>
+                <ul>
+                    <li><a href="sobre.html">Sobre a D Lírio</a></li>
+                    <li><a href="termos.html">Termos de Uso</a></li>
+                    <li><a href="privacidade.html">Política de Privacidade</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>CONTATO</h4>
+                <p>contato@dlirio.com.br</p>
+                <p>Seg a Sex, das 9h às 18h</p>
+                <p><a href="https://wa.me/5541984380355" target="_blank" rel="noopener noreferrer">WhatsApp: (41) 98438-0355</a></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 D LÍRIO. TODOS OS DIREITOS RESERVADOS.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
