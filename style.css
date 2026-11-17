@@ -147,14 +147,44 @@ button { font-family: inherit; }
 .hero-date { font-size: 0.8rem; letter-spacing: 3px; color: var(--text-secondary); font-weight: 300; margin-bottom: 30px; }
 
 .btn-primary {
-    display: inline-block; padding: 15px 40px;
-    border: 1px solid var(--text-primary);
-    font-size: 0.8rem; font-weight: 600; letter-spacing: 2px;
-    color: var(--text-primary); text-transform: uppercase;
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-    background: transparent; cursor: pointer;
+    display: inline-block;
+    padding: 15px 40px;
+    background: transparent;
+    border: none; /* Remove a borda retangular */
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    /* Animação do brilho rosa pulsando */
+    animation: pulse-neon 2s infinite alternate;
 }
-.btn-primary:hover { background-color: var(--pink-accent); border-color: var(--pink-accent); color: white; }
+
+.btn-primary:hover {
+    color: #fff;
+    /* Aumenta a intensidade do brilho ao passar o mouse */
+    text-shadow: 0 0 10px #fff, 0 0 20px var(--pink-accent), 0 0 40px var(--pink-accent);
+}
+
+/* Keyframes da animação pulsante */
+@keyframes pulse-neon {
+    0% {
+        /* Brilho mais fraco */
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.3), 
+                     0 0 10px var(--pink-accent), 
+                     0 0 20px rgba(255, 0, 127, 0.4);
+    }
+    100% {
+        /* Brilho forte (aura rosa) */
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 
+                     0 0 25px var(--pink-accent), 
+                     0 0 45px var(--pink-accent), 
+                     0 0 70px var(--pink-accent);
+    }
+}
 
 /* =========================================
    VITRINE (SHOP SECTION)
@@ -480,16 +510,109 @@ button { font-family: inherit; }
 @media (max-width: 1024px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
 
 @media (max-width: 768px) {
-    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 30px 15px; padding: 0 15px; }
-    .header { padding: 0 20px; }
-    .sidebar { width: 100%; }
-    .marquee-content span { font-size: 0.65rem; }
-    .product-container { flex-direction: column; margin-top: 100px; padding: 0 20px; gap: 30px; }
-    .product-gallery { flex-direction: column-reverse; }
-    .thumbnail-list { flex-direction: row; width: 100%; }
-    .form-row { flex-direction: column; gap: 0; }
-    .footer-columns { grid-template-columns: 1fr; gap: 30px; }
-    .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
+    /* =========================================
+       CORREÇÃO GERAL DE LARGURA (EVITA ROLAGEM LATERAL)
+       ========================================= */
+    html, body {
+        overflow-x: hidden;
+        width: 100%;
+    }
+
+    /* =========================================
+       CABEÇALHO MOBILE (CENTRALIZADO)
+       ========================================= */
+    .header { 
+        padding: 0 15px; 
+        height: 70px; /* Header um pouco mais fino no celular */
+    }
+
+    .header-left, .header-right {
+        flex: 0 0 auto; /* Remove o flex: 1 que empurrava a logo pro lado */
+    }
+
+    .header-center {
+        flex: 1; /* Faz a logo ocupar o espaço central */
+        display: flex;
+        justify-content: center;
+        margin: 0 10px; /* Dá um respiro da seta e do carrinho */
+    }
+
+    .logo-img { 
+        height: 90px; /* Diminui a logo para caber bem no celular */
+    }
+
+    /* =========================================
+       VITRINE DE PRODUTOS MOBILE
+       ========================================= */
+    .product-grid { 
+        grid-template-columns: repeat(2, 1fr); /* 2 colunas no celular */
+        gap: 20px 15px; 
+        padding: 0 15px; 
+    }
+
+    .product-title { font-size: 0.7rem; }
+    .product-price { font-size: 0.75rem; }
+    .product-sizes { font-size: 0.6rem; }
+
+    /* =========================================
+       MENU LATERAL (SIDEBAR)
+       ========================================= */
+    .sidebar { width: 100%; } /* Ocupa a tela toda no celular */
+    
+    /* =========================================
+       RODAPÉ (FOOTER) - 1 COLUNA
+       ========================================= */
+    .footer-columns { 
+        grid-template-columns: 1fr; /* Empilha tudo em 1 coluna */
+        gap: 30px; 
+        text-align: center; /* Centraliza os textos */
+    }
+    
+    .footer-col ul {
+        padding: 0;
+    }
+
+    .footer-bottom { 
+        flex-direction: column; 
+        gap: 10px; 
+        text-align: center; 
+        padding-top: 20px;
+    }
+
+    /* =========================================
+       PÁGINA DE PRODUTO (JÁ FEITO ANTERIORMENTE)
+       ========================================= */
+    .product-container { 
+        flex-direction: column; 
+        margin-top: 100px; 
+        padding: 0 20px; 
+        gap: 30px; 
+    }
+    
+    .product-gallery { 
+        flex-direction: column; 
+        gap: 15px;
+    }
+    
+    .main-image-container {
+        width: 100%;
+        aspect-ratio: 4/5;
+    }
+
+    .thumbnail-list { 
+        flex-direction: row; 
+        width: 100%; 
+        overflow-x: auto; 
+        gap: 10px;
+        padding-bottom: 5px;
+    }
+
+    .thumbnail {
+        width: 60px; 
+        height: 60px;
+        flex-shrink: 0; 
+        object-fit: cover; 
+    }
 }
 
 @media (max-width: 500px) { .cart-sidebar { width: 100%; } }
