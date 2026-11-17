@@ -29,19 +29,12 @@ button { font-family: inherit; }
    ========================================= */
 .overlay, .cart-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
-    opacity: 0; visibility: hidden; transition: all 0.4s;
-}
-.overlay {
-    background: rgba(0, 0, 0, 0.85); /* Escurece mais para compensar o blur */
-    /* backdrop-filter: blur(3px);  <-- REMOVA OU COMENTE ISSO */
-    z-index: 1500;
+    background: rgba(0, 0, 0, 0.85);
+    opacity: 0; visibility: hidden;
     transition: opacity 0.4s ease, visibility 0.4s ease;
 }
-.cart-overlay { 
-    background: rgba(0, 0, 0, 0.85); /* Escurece mais o fundo */
-    /* backdrop-filter: blur(8px);  <-- REMOVIDO PARA MELHORAR PERFORMANCE */
-    z-index: 3000; 
-}
+.overlay { z-index: 1500; }
+.cart-overlay { z-index: 3000; }
 
 .overlay.active, .cart-overlay.active { opacity: 1; visibility: visible; }
 
@@ -53,8 +46,7 @@ button { font-family: inherit; }
     top: 0; left: 0; width: 100%; height: 80px;
     display: flex; justify-content: space-between; align-items: center;
     padding: 0 40px;
-    background: #000000; /* <-- Preto sólido aqui */
-    /* backdrop-filter: blur(10px); <-- Apague essa linha */
+    background: #000000;
     z-index: 1000;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     transition: transform 0.4s ease, opacity 0.4s ease;
@@ -84,18 +76,12 @@ button { font-family: inherit; }
 .sidebar {
     position: fixed; top: 0; left: 0; width: 350px; height: 100vh;
     background-color: var(--bg-color); z-index: 2000;
-    
-    /* Otimização de GPU */
-    transform: translate3d(-100%, 0, 0); /* Substitui o translateX */
-    will-change: transform; 
+    transform: translate3d(-100%, 0, 0); /* translate3d já joga o menu para a GPU */
     transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1);
-    
     padding: 60px 40px;
 }
 
-.sidebar.active { 
-    transform: translate3d(0, 0, 0); 
-}
+.sidebar.active { transform: translate3d(0, 0, 0); }
 
 .close-btn {
     position: absolute; top: 20px; right: 30px;
@@ -113,29 +99,23 @@ button { font-family: inherit; }
 .sidebar-footer { margin-top: auto; padding-bottom: 20px; display: flex; flex-direction: column; align-items: center; width: 100%; }
 .sidebar-footer .sidebar-divider { width: 100%; margin: 20px 0; }
 .social-links { display: flex; gap: 30px; align-items: center; justify-content: center; }
-.social-links a { color: var(--text-secondary); display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+.social-links a { color: var(--text-secondary); display: flex; align-items: center; justify-content: center; transition: color 0.3s ease, transform 0.3s ease; }
 .social-links a:hover { color: var(--pink-accent); transform: translateY(-5px); }
 
 /* =========================================
    HERO SECTION (A ENTRADA)
    ========================================= */
-/* Atualize a classe .hero no seu style.css */
 .hero {
-    height: 100vh; 
+    height: 100vh;
     width: 100%;
-    position: relative; /* Importante para o canvas se posicionar */
-    overflow: hidden;   /* Evita barras de rolagem */
-    
-    /* Remova a linha do background-image antigo */
-    /* background-image: linear-gradient(...), url('imgs/backgroud.webp'); */
-    background-color: #000; /* Fundo preto base */
-    
-    display: flex; 
-    align-items: center; 
+    position: relative; /* o canvas do fogo se posiciona em relação a ele */
+    overflow: hidden;
+    background-color: #000;
+    display: flex;
+    align-items: center;
     justify-content: center;
 }
 
-/* Estilo do Canvas */
 #fire-canvas {
     position: absolute;
     top: 0;
@@ -149,24 +129,19 @@ button { font-family: inherit; }
 /* Garante que o conteúdo fique acima do fogo */
 .hero-content {
     position: relative;
-    z-index: 1; 
-    text-align: center; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    gap: 15px; 
-    margin-top: 50px; 
+    z-index: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-top: 50px;
 }
 
 .hero-logo {
-    height: 200px; 
+    height: 200px;
     margin-bottom: 20px;
     filter: invert(1);
-}
-
-@keyframes flutuar3d {
-    0%, 100% { transform: perspective(800px) rotateX(15deg) rotateZ(-5deg) translateY(0); }
-    50%      { transform: perspective(800px) rotateX(15deg) rotateZ(-5deg) translateY(-15px); }
 }
 
 .hero-date { font-size: 0.8rem; letter-spacing: 3px; color: var(--text-secondary); font-weight: 300; margin-bottom: 30px; }
@@ -176,7 +151,8 @@ button { font-family: inherit; }
     border: 1px solid var(--text-primary);
     font-size: 0.8rem; font-weight: 600; letter-spacing: 2px;
     color: var(--text-primary); text-transform: uppercase;
-    transition: all 0.3s ease; background: transparent; cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    background: transparent; cursor: pointer;
 }
 .btn-primary:hover { background-color: var(--pink-accent); border-color: var(--pink-accent); color: white; }
 
@@ -200,9 +176,11 @@ button { font-family: inherit; }
     margin-bottom: 20px; position: relative;
 }
 
+/* Sem drop-shadow no estado normal: a sombra era preta sobre fundo preto (invisível)
+   e obrigava o navegador a desenhar um blur em cada imagem. O brilho rosa só existe no hover. */
 .product-image {
     width: 85%; object-fit: contain; position: absolute;
-    transition: all 0.4s ease; filter: drop-shadow(0 15px 20px rgba(0,0,0,0.6));
+    transition: opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease;
 }
 
 .product-image-front { z-index: 2; }
@@ -228,7 +206,7 @@ button { font-family: inherit; }
 .main-image-container { flex: 1; background-color: #050505; aspect-ratio: 4/5; display: flex; align-items: center; justify-content: center; }
 .main-image { width: 100%; height: 100%; object-fit: contain; padding: 20px; }
 .thumbnail-list { display: flex; flex-direction: column; gap: 10px; width: 80px; }
-.thumbnail { width: 100%; aspect-ratio: 1/1; object-fit: cover; cursor: pointer; opacity: 0.5; border: 1px solid transparent; transition: all 0.3s; }
+.thumbnail { width: 100%; aspect-ratio: 1/1; object-fit: cover; cursor: pointer; opacity: 0.5; border: 1px solid transparent; transition: opacity 0.3s, border-color 0.3s; }
 .thumbnail:hover, .thumbnail.active { opacity: 1; border-color: var(--text-secondary); }
 
 .product-details { flex: 1; display: flex; flex-direction: column; }
@@ -238,10 +216,10 @@ button { font-family: inherit; }
 .selector-group { margin-bottom: 30px; }
 .selector-label { display: block; font-size: 0.75rem; color: var(--text-secondary); letter-spacing: 1px; margin-bottom: 10px; }
 .size-options { display: flex; gap: 10px; }
-.size-btn { background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: var(--text-primary); padding: 12px 20px; font-size: 0.8rem; cursor: pointer; transition: all 0.3s; }
+.size-btn { background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: var(--text-primary); padding: 12px 20px; font-size: 0.8rem; cursor: pointer; transition: border-color 0.3s, color 0.3s; }
 .size-btn:hover, .size-btn.active { border-color: var(--pink-accent); color: var(--pink-accent); }
 
-.btn-add-to-cart { background: transparent; border: 1px solid var(--pink-accent); color: var(--pink-accent); padding: 20px; font-size: 0.9rem; font-weight: 600; letter-spacing: 2px; cursor: pointer; text-transform: uppercase; transition: all 0.3s; margin-bottom: 40px; }
+.btn-add-to-cart { background: transparent; border: 1px solid var(--pink-accent); color: var(--pink-accent); padding: 20px; font-size: 0.9rem; font-weight: 600; letter-spacing: 2px; cursor: pointer; text-transform: uppercase; transition: background-color 0.3s, color 0.3s, border-color 0.3s; margin-bottom: 40px; }
 .btn-add-to-cart:hover { background: var(--pink-accent); color: #000; }
 
 .accordion-item { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
@@ -254,21 +232,15 @@ button { font-family: inherit; }
 /* =========================================
    CARRINHO LATERAL
    ========================================= */
-.cart-sidebar { 
-    position: fixed; top: 0; right: 0; width: 450px; height: 100vh; 
-    background-color: #0a0a0a; z-index: 3001; 
-    
-    /* Otimização de GPU para deslizar suave */
-    transform: translate3d(100%, 0, 0); 
-    will-change: transform;
-    transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1); 
-    
-    display: flex; flex-direction: column; border-left: 1px solid rgba(255, 255, 255, 0.05); 
+.cart-sidebar {
+    position: fixed; top: 0; right: 0; width: 450px; height: 100vh;
+    background-color: #0a0a0a; z-index: 3001;
+    transform: translate3d(100%, 0, 0); /* translate3d já joga o carrinho para a GPU */
+    transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+    display: flex; flex-direction: column; border-left: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.cart-sidebar.active { 
-    transform: translate3d(0, 0, 0); 
-}
+.cart-sidebar.active { transform: translate3d(0, 0, 0); }
 .cart-header { padding: 25px 30px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); display: flex; justify-content: space-between; align-items: center; }
 .cart-header h2 { font-size: 0.9rem; letter-spacing: 2px; font-weight: 600; }
 .cart-header-right { display: flex; align-items: center; gap: 15px; }
@@ -293,7 +265,7 @@ button { font-family: inherit; }
 .cart-terms { display: flex; align-items: center; gap: 10px; font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 20px; cursor: pointer; }
 .cart-terms input { accent-color: var(--pink-accent); }
 .cart-actions { display: flex; gap: 10px; }
-.btn-cart-outline, .btn-cart-solid { flex: 1; padding: 15px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; cursor: pointer; transition: all 0.3s; }
+.btn-cart-outline, .btn-cart-solid { flex: 1; padding: 15px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; cursor: pointer; transition: background-color 0.3s, border-color 0.3s; }
 .btn-cart-outline { background: transparent; border: 1px solid rgba(255, 255, 255, 0.3); color: white; }
 .btn-cart-outline:hover { border-color: white; }
 .btn-cart-solid { background: var(--pink-accent); border: 1px solid var(--pink-accent); color: white; }
@@ -381,7 +353,7 @@ button { font-family: inherit; }
 }
 .btn-close-admin:hover { background: var(--pink-accent); color: #fff; }
 
-/* ADMIN: topo, login e ajustes (antes eram estilos inline no HTML) */
+/* ADMIN: topo, login e ajustes */
 .admin-topbar { display: flex; justify-content: flex-end; margin-bottom: 20px; }
 .admin-login { max-width: 400px; margin: 50px auto; text-align: center; }
 .admin-login form { display: flex; flex-direction: column; gap: 15px; }
@@ -391,24 +363,6 @@ button { font-family: inherit; }
 .drop-zone strong { color: var(--pink-accent); }
 .form-actions { margin-top: 10px; }
 .form-actions > button { flex: 1; }
-
-/* =========================================
-   RESPONSIVIDADE (sempre por último)
-   ========================================= */
-@media (max-width: 1024px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
-
-@media (max-width: 768px) {
-    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 30px 15px; padding: 0 15px; }
-    .header { padding: 0 20px; }
-    .sidebar { width: 100%; }
-    .marquee-content span { font-size: 0.65rem; }
-    .product-container { flex-direction: column; margin-top: 100px; padding: 0 20px; gap: 30px; }
-    .product-gallery { flex-direction: column-reverse; }
-    .thumbnail-list { flex-direction: row; width: 100%; }
-    .form-row { flex-direction: column; gap: 0; }
-}
-
-@media (max-width: 500px) { .cart-sidebar { width: 100%; } }
 
 /* =========================================
    RODAPÉ (FOOTER)
@@ -469,18 +423,25 @@ button { font-family: inherit; }
     display: flex;
     justify-content: center;
 }
+.info-container { max-width: 800px; width: 100%; }
 
-.info-container {
-    max-width: 800px;
-    width: 100%;
+.info-container-page {
+    min-height: 80vh;
+    padding: 120px 40px 60px;
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: center;
 }
+.info-content { max-width: 800px; width: 100%; }
 
 .btn-back-text {
+    display: inline-block;
     background: none;
     border: none;
     color: var(--text-secondary);
     font-size: 0.8rem;
     letter-spacing: 1px;
+    text-decoration: none;
     cursor: pointer;
     margin-bottom: 40px;
     transition: color 0.3s;
@@ -494,62 +455,7 @@ button { font-family: inherit; }
     color: var(--text-primary);
 }
 
-.info-content p {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    line-height: 1.8;
-    margin-bottom: 20px;
-}
-
-.faq-item {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 20px 0;
-}
-.faq-item h3 {
-    font-size: 0.9rem;
-    color: var(--text-primary);
-    margin-bottom: 10px;
-}
 .faq-item p { margin-bottom: 0; }
-
-@media (max-width: 768px) {
-    .footer-columns { grid-template-columns: 1fr; gap: 30px; }
-    .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
-}
-
-/* =========================================
-   PÁGINAS DE SUPORTE (Arquivos separados)
-   ========================================= */
-.info-container-page {
-    min-height: 80vh;
-    padding: 120px 40px 60px;
-    background-color: var(--bg-color);
-    display: flex;
-    justify-content: center;
-}
-
-.info-content {
-    max-width: 800px;
-    width: 100%;
-}
-
-.btn-back-text {
-    display: inline-block;
-    color: var(--text-secondary);
-    font-size: 0.8rem;
-    letter-spacing: 1px;
-    text-decoration: none;
-    margin-bottom: 40px;
-    transition: color 0.3s;
-}
-.btn-back-text:hover { color: var(--pink-accent); }
-
-.info-content h1 {
-    font-size: 1.8rem;
-    letter-spacing: 2px;
-    margin-bottom: 20px;
-    color: var(--text-primary);
-}
 
 .info-content p {
     color: var(--text-secondary);
@@ -567,3 +473,23 @@ button { font-family: inherit; }
     color: var(--text-primary);
     margin-bottom: 10px;
 }
+
+/* =========================================
+   RESPONSIVIDADE (sempre por último)
+   ========================================= */
+@media (max-width: 1024px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+
+@media (max-width: 768px) {
+    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 30px 15px; padding: 0 15px; }
+    .header { padding: 0 20px; }
+    .sidebar { width: 100%; }
+    .marquee-content span { font-size: 0.65rem; }
+    .product-container { flex-direction: column; margin-top: 100px; padding: 0 20px; gap: 30px; }
+    .product-gallery { flex-direction: column-reverse; }
+    .thumbnail-list { flex-direction: row; width: 100%; }
+    .form-row { flex-direction: column; gap: 0; }
+    .footer-columns { grid-template-columns: 1fr; gap: 30px; }
+    .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
+}
+
+@media (max-width: 500px) { .cart-sidebar { width: 100%; } }
