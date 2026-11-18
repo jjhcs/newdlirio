@@ -1,89 +1,117 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // =========================================
-    // 1. CONEXÃO COM O SUPABASE
+    // 1. SUPABASE
     // =========================================
-    const SUPABASE_URL = 'https://brwcyaczsgdcmxotvbeo.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_Z8vt2f38fT8x9V3B_A7_GQ_WUv98mDH';
+    const supabaseClient = supabase.createClient(
+        'https://brwcyaczsgdcmxotvbeo.supabase.co',
+        'sb_publishable_Z8vt2f38fT8x9V3B_A7_GQ_WUv98mDH'
+    );
+    window.supabaseClient = supabaseClient;
 
-    const { createClient } = supabase;
-    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
-    window.supabaseClient = supabaseClient; // Reaproveitado pelo admin.js
+    // =========================================
+    // CONFIGURAÇÃO WHATSAPP
+    // =========================================
+    const WHATSAPP_NUMERO = '5541984380355'; // 55 = Brasil, 41 = DDD
 
-    // Estado (Carregando do localStorage se existir)
+    // Estado
     let cart = JSON.parse(localStorage.getItem('dlirio_cart')) || [];
     let produtosGlobais = [];
     let filtroAtual = 'TODOS';
     let produtoAtual = null;
 
     // Elementos
-    const homeShopView = document.getElementById('home-shop-view');
-    const homeView = document.getElementById('home-view');
-    const shopView = document.getElementById('shop-view');
-    const productView = document.getElementById('product-view');
-    const grid = document.querySelector('.product-grid');
-    const mainImage = document.getElementById('main-image');
-    const menuBtn = document.getElementById('menu-btn');
-    const backBtn = document.getElementById('back-btn');
-    const logoHomeBtn = document.getElementById('logo-home-btn');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-    const headerElement = document.querySelector('.header');
-    const cartSidebar = document.getElementById('cart-sidebar');
-    const cartOverlay = document.getElementById('cart-overlay');
-    const closeCartBtn = document.getElementById('close-cart-btn');
-    const addToCartBtn = document.querySelector('.btn-add-to-cart');
-    const checkoutBtn = document.getElementById('checkout-btn');
-    const termsCheckbox = document.getElementById('terms-checkbox');
+    const $ = (sel) => document.querySelector(sel);
+    const homeShopView   = document.getElementById('home-shop-view');
+    const homeView       = document.getElementById('home-view');
+    const shopView       = document.getElementById('shop-view');
+    const productView    = document.getElementById('product-view');
+    const grid           = $('.product-grid');
+    const mainImage      = document.getElementById('main-image');
+    const menuBtn        = document.getElementById('menu-btn');
+    const backBtn        = document.getElementById('back-btn');
+    const logoHomeBtn    = document.getElementById('logo-home-btn');
+    const sidebar        = document.getElementById('sidebar');
+    const overlay        = document.getElementById('overlay');
+    const headerElement  = $('.header');
+    const cartSidebar    = document.getElementById('cart-sidebar');
+    const cartOverlay    = document.getElementById('cart-overlay');
+    const closeCartBtn   = document.getElementById('close-cart-btn');
+    const addToCartBtn   = $('.btn-add-to-cart');
+    const checkoutBtn    = document.getElementById('checkout-btn');
+    const termsCheckbox  = document.getElementById('terms-checkbox');
 
-    const formatarPreco = (valor) => `R$ ${valor.toFixed(2).replace('.', ',')}`;
+    const formatarPreco = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`;
 
     // =========================================
-    // VERIFICA SE O USUÁRIO VEIO DA LOGO DO SUPORTE
+    // HELPERS DE NAVEGAÇÃO
+    // =========================================
+    function fecharMenu() {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+    }
+
+    function transitarParaVitrine() {
+        homeView.classList.add('anim-slide-out-left');
+        setTimeout(() => {
+            homeView.classList.add('hidden');
+            homeView.classList.remove('anim-slide-out-left');
+            shopView.classList.remove('hidden');
+            headerElement.classList.remove('header-hidden');
+            shopView.classList.add('anim-slide-in-right');
+            window.scrollTo(0, 0);
+            fecharMenu();
+            filtroAtual = 'TODOS';
+            aplicarFiltro();
+            setTimeout(() => shopView.classList.remove('anim-slide-in-right'), 600);
+        }, 600);
+    }
+
+    function goBackToShop() {
+        productView.classList.add('hidden');
+        homeShopView.classList.remove('hidden');
+        backBtn.classList.add('hidden');
+        menuBtn.classList.remove('hidden');
+    }
+
+    // =========================================
+    // VERIFICA SE VEIO DA LOGO DO SUPORTE
     // =========================================
     if (window.location.search.includes('loja=true')) {
-        // Se veio, abre a vitrine pulando a Hero
         headerElement.classList.remove('header-hidden');
         homeView.classList.add('hidden');
         shopView.classList.remove('hidden');
-
-        // Limpa a URL para não bugar se der F5
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 
     // =========================================
-    // 2. BUSCAR PRODUTOS DO SUPABASE
+    // 2. BUSCAR PRODUTOS
     // =========================================
-    window.carregarProdutos = async function() {
+    window.carregarProdutos = async function () {
         try {
             const { data, error } = await supabaseClient
                 .from('produtos')
-                .select(`
-                    id, nome, preco, categoria, imagem_frente, imagem_verso, galeria,
-                    variacoes ( id, tamanho, estoque )
-                `)
+                .select(`id, nome, preco, categoria, imagem_frente, imagem_verso, galeria,
+                         variacoes ( id, tamanho, estoque )`)
                 .eq('ativo', true);
 
             if (error) throw error;
-
             produtosGlobais = data;
             renderizarVitrine();
-
         } catch (error) {
             console.error('Erro ao buscar produtos:', error.message);
         }
     };
 
     // =========================================
-    // 3. RENDERIZAR VITRINE
+    // 3. VITRINE
     // =========================================
     function renderizarVitrine() {
         if (produtosGlobais.length === 0) {
-            grid.innerHTML = '<p style="color: #888; width: 100%; text-align: center; grid-column: 1/-1;">Nenhum produto cadastrado ainda.</p>';
+            grid.innerHTML = '<p style="color:#888;width:100%;text-align:center;grid-column:1/-1;">Nenhum produto cadastrado ainda.</p>';
             return;
         }
 
-        // loading="lazy": o navegador só baixa as imagens quando a vitrine está visível/perto da tela
         grid.innerHTML = produtosGlobais.map(prod => {
             const tamanhosHTML = prod.variacoes
                 .filter(v => v.estoque > 0)
@@ -118,13 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.carregarProdutos();
 
     // =========================================
-    // 4. NAVEGAÇÃO E MENUS
+    // 4. MENUS E NAVEGAÇÃO
     // =========================================
-    function fecharMenu() {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-    }
-
     menuBtn.addEventListener('click', () => {
         sidebar.classList.toggle('active');
         overlay.classList.toggle('active');
@@ -135,48 +158,22 @@ document.addEventListener('DOMContentLoaded', () => {
     function showShop(e, categoria = 'TODOS') {
         e.preventDefault();
         headerElement.classList.remove('header-hidden');
-
-        // Esconde apenas a tela de entrada (hero), não o container todo
         homeView.classList.add('hidden');
         shopView.classList.remove('hidden');
-
         window.scrollTo(0, 0);
         fecharMenu();
-
         filtroAtual = categoria;
         aplicarFiltro();
     }
 
     document.getElementById('btn-all-products').addEventListener('click', (e) => {
-        e.target.setAttribute('data-timer-iniciado', 'true'); 
-        
-        // Aplica a animação de saída
-        homeView.classList.add('anim-slide-out-left');
-        
-        setTimeout(() => {
-            homeView.classList.add('hidden');
-            homeView.classList.remove('anim-slide-out-left');
-            
-            shopView.classList.remove('hidden');
-            headerElement.classList.remove('header-hidden');
-            
-            shopView.classList.add('anim-slide-in-right');
-            window.scrollTo(0, 0);
-            fecharMenu();
-
-            filtroAtual = 'TODOS';
-            aplicarFiltro();
-
-            setTimeout(() => {
-                shopView.classList.remove('anim-slide-in-right');
-            }, 600);
-
-        }, 600);
+        e.target.setAttribute('data-timer-iniciado', 'true');
+        transitarParaVitrine();
     });
-    
-    document.querySelectorAll('.btn-shop').forEach(link => {
-        link.addEventListener('click', (e) => showShop(e, link.textContent.trim()));
-    });
+
+    document.querySelectorAll('.btn-shop').forEach(link =>
+        link.addEventListener('click', (e) => showShop(e, link.textContent.trim()))
+    );
 
     // =========================================
     // 5. PÁGINA DE PRODUTO
@@ -188,44 +185,43 @@ document.addEventListener('DOMContentLoaded', () => {
         addToCartBtn.style.borderColor = 'var(--pink-accent)';
     }
 
-    window.openProduct = function(e, id) {
+    window.openProduct = function (e, id) {
         e.preventDefault();
-
         const produto = produtosGlobais.find(p => p.id === id);
         if (!produto) return;
         produtoAtual = produto;
 
-        document.querySelector('.product-name').textContent = produto.nome;
-        document.querySelector('.product-price-large').textContent = formatarPreco(produto.preco);
+        $('.product-name').textContent = produto.nome;
+        $('.product-price-large').textContent = formatarPreco(produto.preco);
         mainImage.src = produto.imagem_frente;
 
         // Miniaturas
-        const thumbnailList = document.querySelector('.thumbnail-list');
+        const thumbnailList = $('.thumbnail-list');
         thumbnailList.innerHTML = '';
         let todasAsFotos = [produto.imagem_frente];
         if (produto.imagem_verso && produto.imagem_verso !== produto.imagem_frente) todasAsFotos.push(produto.imagem_verso);
-        if (produto.galeria && produto.galeria.length > 0) todasAsFotos = todasAsFotos.concat(produto.galeria);
+        if (produto.galeria?.length) todasAsFotos = todasAsFotos.concat(produto.galeria);
 
         todasAsFotos.forEach((fotoUrl, index) => {
             const img = document.createElement('img');
             img.src = fotoUrl;
-            img.className = 'thumbnail';
-            if (index === 0) img.classList.add('active');
-            img.onclick = function() {
+            img.className = 'thumbnail' + (index === 0 ? ' active' : '');
+            img.onclick = function () {
                 mainImage.src = this.src;
-                document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+                thumbnailList.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
             };
             thumbnailList.appendChild(img);
         });
 
         // Tamanhos
-        const sizeOptionsContainer = document.querySelector('.size-options');
+        const sizeOptionsContainer = $('.size-options');
         sizeOptionsContainer.innerHTML = '';
         produto.variacoes.forEach(v => {
             const btn = document.createElement('button');
             btn.className = 'size-btn';
             btn.textContent = v.tamanho;
+
             if (v.estoque <= 0) {
                 btn.disabled = true;
                 btn.style.opacity = '0.3';
@@ -252,40 +248,27 @@ document.addEventListener('DOMContentLoaded', () => {
         window.scrollTo(0, 0);
     };
 
-    function goBackToShop() {
-        productView.classList.add('hidden');
-        homeShopView.classList.remove('hidden');
-        backBtn.classList.add('hidden');
-        menuBtn.classList.remove('hidden');
-    }
     backBtn.addEventListener('click', goBackToShop);
 
     logoHomeBtn.addEventListener('click', (e) => {
         e.preventDefault();
 
-        // 1. Se estiver na página de um produto específico, volta para a vitrine
-        if (!productView.classList.contains('hidden')) {
-            goBackToShop();
-            return;
-        }
+        if (!productView.classList.contains('hidden')) return goBackToShop();
 
-        // 2. Se estiver na vitrine (shop-view), volta para a Hero (Tela Inicial)
         if (!shopView.classList.contains('hidden')) {
             shopView.classList.add('hidden');
             homeView.classList.remove('hidden');
             headerElement.classList.add('header-hidden');
             window.scrollTo(0, 0);
-
             filtroAtual = 'TODOS';
             aplicarFiltro();
             return;
         }
 
-        // 3. Se já estiver na Hero, apenas rola para o topo (segurança)
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    window.toggleAccordion = function(btn) {
+    window.toggleAccordion = function (btn) {
         const content = btn.nextElementSibling;
         const icon = btn.querySelector('.accordion-icon');
         const aberto = content.style.maxHeight;
@@ -296,16 +279,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================
     // 6. CARRINHO
     // =========================================
-    window.openCart = function() {
+    window.openCart = function () {
         cartSidebar.classList.add('active');
         cartOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Trava o scroll do fundo
+        document.body.style.overflow = 'hidden';
     };
 
-    window.closeCart = function() {
+    window.closeCart = function () {
         cartSidebar.classList.remove('active');
         cartOverlay.classList.remove('active');
-        document.body.style.overflow = ''; // Libera o scroll
+        document.body.style.overflow = '';
     };
 
     closeCartBtn.addEventListener('click', closeCart);
@@ -316,12 +299,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!variacaoId) return;
 
         const itemExistente = cart.find(item => item.variacaoId === variacaoId);
-
         if (itemExistente) {
             itemExistente.qty += 1;
         } else {
             cart.push({
-                variacaoId: variacaoId,
+                variacaoId,
                 nome: produtoAtual.nome,
                 preco: produtoAtual.preco,
                 tamanho: addToCartBtn.dataset.tamanho,
@@ -329,7 +311,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 qty: 1
             });
         }
-
         renderCart();
         openCart();
     });
@@ -340,10 +321,10 @@ document.addEventListener('DOMContentLoaded', () => {
     termsCheckbox.addEventListener('change', atualizarBotaoFinalizar);
 
     function renderCart() {
-        const container = document.getElementById('cart-items-container');
+        const container    = document.getElementById('cart-items-container');
         const totalPriceEl = document.getElementById('cart-total-price');
-        const countEl = document.getElementById('cart-count');
-        const cartBadge = document.getElementById('cart-badge');
+        const countEl      = document.getElementById('cart-count');
+        const cartBadge    = document.getElementById('cart-badge');
 
         container.innerHTML = '';
 
@@ -357,8 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        let total = 0;
-        let totalItems = 0;
+        let total = 0, totalItems = 0;
 
         cart.forEach((item, index) => {
             total += item.preco * item.qty;
@@ -387,25 +367,72 @@ document.addEventListener('DOMContentLoaded', () => {
         cartBadge.textContent = totalItems;
         cartBadge.classList.remove('hidden');
         atualizarBotaoFinalizar();
-
         localStorage.setItem('dlirio_cart', JSON.stringify(cart));
     }
 
-    window.updateQty = function(index, change) {
+    window.updateQty = function (index, change) {
         cart[index].qty += change;
         if (cart[index].qty <= 0) cart.splice(index, 1);
         renderCart();
     };
 
     // =========================================
+    // 6.1 FINALIZAR COMPRA VIA WHATSAPP
+    // =========================================
+    function finalizarCompra() {
+        if (cart.length === 0 || !termsCheckbox.checked) return;
+
+        const total = cart.reduce(
+            (acc, item) => acc + item.preco * item.qty,
+            0
+        );
+
+        const linhasItens = cart.map((item, index) => {
+            const subtotal = formatarPreco(item.preco * item.qty);
+
+            return (
+                `*${index + 1}. ${item.nome}*\n` +
+                `Tamanho: ${item.tamanho}\n` +
+                `Quantidade: ${item.qty}x\n` +
+                `Valor unitário: ${formatarPreco(item.preco)}\n` +
+                `Subtotal: ${subtotal}`
+            );
+        }).join('\n\n');
+
+        const mensagem = [
+            '*NOVO PEDIDO*',
+            '',
+            'Olá! Tudo bem? Gostaria de finalizar minha compra.',
+            '',
+            '------------------------------',
+            '*RESUMO DO PEDIDO*',
+            '',
+            linhasItens,
+            '',
+            '------------------------------',
+            `*TOTAL: ${formatarPreco(total)}*`,
+            '------------------------------',
+            '',
+            'Aguardo as instruções para pagamento e finalização do pedido.',
+            '',
+            'Obrigado(a)!'
+        ].join('\n');
+
+        const url = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(mensagem)}`;
+
+        window.open(url, '_blank');
+    }
+
+    checkoutBtn.addEventListener('click', finalizarCompra);
+    // =========================================
     // 7. DATA E HORA
     // =========================================
     const dateElement = document.getElementById('current-date');
-    // Formatter criado uma única vez (criar um novo a cada segundo é caro)
     const formatoData = new Intl.DateTimeFormat('pt-BR', {
         day: '2-digit', month: '2-digit', year: 'numeric',
         hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
     });
+
     function updateDate() {
         dateElement.textContent = formatoData.format(new Date()).replace(',', '').toUpperCase() + ' BR';
     }
@@ -413,36 +440,30 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(updateDate, 1000);
 
     // =========================================
-    // 8. INICIALIZAÇÃO DO CARRINHO (RESTAURA AO F5)
+    // 8. RESTAURA CARRINHO AO F5
     // =========================================
     renderCart();
 
     // =========================================
-    // 9. EFEITO DE FOGO NA HERO (WEBGL)
+    // 9. EFEITO DE FOGO (WEBGL)
     // =========================================
     (function initFireEffect() {
         const canvas = document.getElementById('fire-canvas');
         if (!canvas) return;
 
-        // Se o usuário preferir menos movimento (acessibilidade), o fogo anda mais devagar
         const calm = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.3 : 1;
-
-        // Resolução interna do fogo. É um efeito borrado, então não precisa de mais:
-        // no máximo metade da tela E no máximo ~220 mil pixels (telas grandes caem para ~1/3).
         const SCALE = 0.5;
         const MAX_PIXELS = 220000;
-        const FRAME_MS = 1000 / 30; // 30 fps bastam: o fogo se move devagar
+        const FRAME_MS = 1000 / 30;
 
         const gl = canvas.getContext('webgl', { antialias: false, alpha: false });
-        if (!gl) return; // Fallback silencioso se não suportar WebGL
+        if (!gl) return;
 
         let running = false, raf = 0, last = 0, resizeTimer = 0, uR, uT;
         const t0 = performance.now();
 
-        // Vertex Shader (padrão para desenhar um quadrado)
         const VS = 'attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}';
 
-        // Fragment Shader (O Fogo)
         const FS = `
         #ifdef GL_FRAGMENT_PRECISION_HIGH
         precision highp float;
@@ -478,7 +499,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function sh(type, src) {
             const s = gl.createShader(type);
-            gl.shaderSource(s, src); gl.compileShader(s);
+            gl.shaderSource(s, src);
+            gl.compileShader(s);
             return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
         }
 
@@ -486,7 +508,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const vs = sh(gl.VERTEX_SHADER, VS), fs = sh(gl.FRAGMENT_SHADER, FS);
             if (!vs || !fs) return false;
             const pg = gl.createProgram();
-            gl.attachShader(pg, vs); gl.attachShader(pg, fs); gl.linkProgram(pg);
+            gl.attachShader(pg, vs);
+            gl.attachShader(pg, fs);
+            gl.linkProgram(pg);
             if (!gl.getProgramParameter(pg, gl.LINK_STATUS)) return false;
             gl.useProgram(pg);
             gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
@@ -504,80 +528,53 @@ document.addEventListener('DOMContentLoaded', () => {
             const s = Math.min(SCALE, Math.sqrt(MAX_PIXELS / (w * h)));
             const cw = Math.max(1, Math.floor(w * s));
             const ch = Math.max(1, Math.floor(h * s));
-            if (cw === canvas.width && ch === canvas.height) return; // nada mudou, não realoca
+            if (cw === canvas.width && ch === canvas.height) return;
             canvas.width = cw;
             canvas.height = ch;
             gl.viewport(0, 0, cw, ch);
-            gl.uniform2f(uR, cw, ch); // só muda quando o tamanho muda, não a cada frame
-            last = 0; // redesenha já no próximo frame
+            gl.uniform2f(uR, cw, ch);
+            last = 0;
         }
 
         function frame(now) {
             if (!running) return;
             raf = requestAnimationFrame(frame);
-            if (now - last < FRAME_MS - 2) return; // limita a ~30 fps
+            if (now - last < FRAME_MS - 2) return;
             last = now;
             gl.uniform1f(uT, (now - t0) / 1000 * calm);
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
 
-        function start() {
-            if (running) return;
-            running = true; raf = requestAnimationFrame(frame);
-        }
-        function stop() { running = false; cancelAnimationFrame(raf); }
+        function start() { if (running) return; running = true; raf = requestAnimationFrame(frame); }
+        function stop()  { running = false; cancelAnimationFrame(raf); }
 
         if (init()) {
             resize();
-
-            // Resize com "debounce": arrastar a janela não realoca o canvas dezenas de vezes
             addEventListener('resize', () => {
                 clearTimeout(resizeTimer);
                 resizeTimer = setTimeout(resize, 150);
             });
 
-            // Só anima se a Hero estiver visível (se abriu direto na loja, não gasta GPU à toa)
             if (!homeView.classList.contains('hidden')) start();
 
-            // Pausa/retoma conforme o usuário sai/volta da tela inicial
             new MutationObserver(() => {
                 homeView.classList.contains('hidden') ? stop() : start();
             }).observe(homeView, { attributes: true, attributeFilter: ['class'] });
         }
     })();
+
     // =========================================
-    // TIMER INTELIGENTE COM TRANSIÇÃO (EFEITO CAPCUT)
+    // 10. TIMER INTELIGENTE (AUTO-ENTRADA NA VITRINE)
     // =========================================
     if (!window.location.search && homeView && !homeView.classList.contains('hidden')) {
         setTimeout(() => {
             const botao = document.getElementById('btn-all-products');
             const jaClicou = botao.getAttribute('data-timer-iniciado') === 'true';
-            
-            if (!homeView.classList.contains('hidden') && !jaClicou) {
-                
-                // 1. Aplica a animação de saída na Hero
-                homeView.classList.add('anim-slide-out-left');
-                
-                // 2. Espera 600ms (tempo da animação) para trocar as telas
-                setTimeout(() => {
-                    // Remove as classes para resetar o estado
-                    homeView.classList.add('hidden');
-                    homeView.classList.remove('anim-slide-out-left');
-                    
-                    // Prepara a vitrine para entrar
-                    shopView.classList.remove('hidden');
-                    headerElement.classList.remove('header-hidden');
-                    
-                    // Aplica a animação de entrada na Vitrine
-                    shopView.classList.add('anim-slide-in-right');
-                    
-                    // Limpa a classe de animação depois que ela terminar
-                    setTimeout(() => {
-                        shopView.classList.remove('anim-slide-in-right');
-                    }, 600);
 
-                }, 600); // Tempo igual ao da animação do CSS
-                
+            if (!homeView.classList.contains('hidden') && !jaClicou) {
+                transitarParaVitrine();
             }
-        }, 2000); // 2000 milissegundos = 2 segundos de espera
-}}); // fecha o DOMContentLoaded
+        }, 2000);
+    }
+
+}); // fecha DOMContentLoaded
