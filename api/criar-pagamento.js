@@ -27,13 +27,20 @@ async function supabaseRequest(path, options = {}) {
 
     if (!response.ok) {
         throw new Error(
-            typeof data === "string"
-                ? data
-                : JSON.stringify(data)
+            typeof data === "string" ? data : JSON.stringify(data)
         );
     }
 
     return data;
+}
+
+async function liberarReserva(pedidoId) {
+    return supabaseRequest("rpc/liberar_estoque_pedido", {
+        method: "POST",
+        body: JSON.stringify({
+            p_pedido_id: pedidoId
+        })
+    });
 }
 
 function enviarErro(res, status, mensagem) {
@@ -59,6 +66,9 @@ module.exports = async function handler(req, res) {
             "Configuração do servidor incompleta."
         );
     }
+
+    let pedidoId = null;
+    let pagamentoCriado = false;
 
     try {
         const body = req.body || {};
@@ -103,149 +113,43 @@ module.exports = async function handler(req, res) {
             );
         }
 
-        const variacaoIds = [...quantidades.keys()];
-
-        const filtroVariacoes = encodeURIComponent(
-            `in.(${variacaoIds.join(",")})`
-        );
-
-        const variacoes = await supabaseRequest(
-            `variacoes?select=id,produto_id,tamanho,estoque&id=${filtroVariacoes}`
-        );
-
-        if (variacoes.length !== variacaoIds.length) {
-            return enviarErro(
-                res,
-                400,
-                "Um ou mais tamanhos não estão disponíveis."
-            );
-        }
-
-        const produtoIds = [
-            ...new Set(variacoes.map(item => Number(item.produto_id)))
-        ];
-
-        const filtroProdutos = encodeURIComponent(
-            `in.(${produtoIds.join(",")})`
-        );
-
-        const produtos = await supabaseRequest(
-            `produtos?select=id,nome,preco,ativo&id=${filtroProdutos}`
-        );
-
-        const produtosPorId = new Map(
-            produtos.map(produto => [Number(produto.id), produto])
-        );
-
-        let totalCentavos = 0;
-
-        const itensPedido = [];
-
-        for (const variacao of variacoes) {
-            const produto = produtosPorId.get(
-                Number(variacao.produto_id)
-            );
-
-            const quantidade = quantidades.get(Number(variacao.id));
-
-            if (!produto || produto.ativo !== true) {
+        for (const quantidade of quantidades.values()) {
+            if (quantidade > 20) {
                 return enviarErro(
                     res,
                     400,
-                    "Um dos produtos não está mais disponível."
+                    "Quantidade máxima por variação excedida."
                 );
             }
-
-            if (
-                !Number.isInteger(Number(variacao.estoque)) ||
-                Number(variacao.estoque) < quantidade
-            ) {
-                return enviarErro(
-                    res,
-                    400,
-                    `Estoque insuficiente para ${produto.nome}, tamanho ${variacao.tamanho}.`
-                );
-            }
-
-            const precoCentavos = Math.round(
-                Number(produto.preco) * 100
-            );
-
-            if (
-                !Number.isSafeInteger(precoCentavos) ||
-                precoCentavos <= 0
-            ) {
-                return enviarErro(
-                    res,
-                    400,
-                    "Preço inválido em um dos produtos."
-                );
-            }
-
-            totalCentavos += precoCentavos * quantidade;
-
-            itensPedido.push({
-                produto_id: produto.id,
-                variacao_id: variacao.id,
-                nome_produto: produto.nome,
-                tamanho: variacao.tamanho,
-                quantidade,
-                preco_unitario: precoCentavos / 100
-            });
         }
 
-        if (
-            !Number.isSafeInteger(totalCentavos) ||
-            totalCentavos <= 0 ||
-            totalCentavos > 100000000
-        ) {
-            return enviarErro(res, 400, "Valor total inválido.");
-        }
+        const itensParaReserva = [...quantidades.entries()].map(
+            ([variacaoId, quantidade]) => ({
+                variacao_id: variacaoId,
+                quantidade
+            })
+        );
 
         const pedidoCriado = await supabaseRequest(
-            "pedidos?select=id",
+            "rpc/criar_pedido_com_reserva",
             {
                 method: "POST",
-                headers: {
-                    Prefer: "return=representation"
-                },
                 body: JSON.stringify({
-                    total: totalCentavos / 100,
-                    metodo_pagamento: "pix",
-                    status: "pendente",
-                    status_pagamento: "pendente",
-                    email_cliente: email
+                    p_email: email,
+                    p_itens: itensParaReserva
                 })
             }
         );
 
-        const pedidoId = pedidoCriado?.[0]?.id;
+        pedidoId = pedidoCriado?.pedidoId;
 
         if (!pedidoId) {
-            throw new Error("Não foi possível registrar o pedido.");
+            throw new Error("Não foi possível criar o pedido com reserva.");
         }
 
-        try {
-            await supabaseRequest("itens_pedido", {
-                method: "POST",
-                headers: {
-                    Prefer: "return=minimal"
-                },
-                body: JSON.stringify(
-                    itensPedido.map(item => ({
-                        ...item,
-                        pedido_id: pedidoId
-                    }))
-                )
-            });
-        } catch (error) {
-            await supabaseRequest(
-                `pedidos?id=eq.${pedidoId}`,
-                { method: "DELETE" }
-            ).catch(() => {});
-
-            throw error;
-        }
+        const expiracao = new Date(
+            Date.now() + 30 * 60 * 1000
+        ).toISOString();
 
         const pagamentoResponse = await fetch(
             "https://api.mercadopago.com/v1/payments",
@@ -257,10 +161,11 @@ module.exports = async function handler(req, res) {
                     "X-Idempotency-Key": randomUUID()
                 },
                 body: JSON.stringify({
-                    transaction_amount: totalCentavos / 100,
+                    transaction_amount: Number(pedidoCriado.total),
                     description: `Pedido D Lírio #${pedidoId}`,
                     payment_method_id: "pix",
                     external_reference: String(pedidoId),
+                    date_of_expiration: expiracao,
                     payer: {
                         email
                     }
@@ -271,35 +176,28 @@ module.exports = async function handler(req, res) {
         const pagamento = await pagamentoResponse.json();
 
         if (!pagamentoResponse.ok) {
-            await supabaseRequest(
-                `pedidos?id=eq.${pedidoId}`,
-                {
-                    method: "PATCH",
-                    body: JSON.stringify({
-                        status_pagamento: "erro"
-                    })
-                }
-            ).catch(() => {});
+            if (pagamentoResponse.status >= 400 &&
+                pagamentoResponse.status < 500) {
+                await liberarReserva(pedidoId);
+            }
 
             console.error("Erro Mercado Pago:", pagamento);
 
             return enviarErro(
                 res,
                 502,
-                "Não foi possível gerar o pagamento PIX. Nenhuma cobrança foi confirmada."
+                "Não foi possível gerar o pagamento PIX."
             );
         }
 
+        if (!pagamento.id) {
+            throw new Error("O Mercado Pago não retornou o ID do pagamento.");
+        }
+
+        pagamentoCriado = true;
+
         const dadosPix =
             pagamento.point_of_interaction?.transaction_data;
-
-        if (
-            !pagamento.id ||
-            !dadosPix?.qr_code ||
-            !dadosPix?.qr_code_base64
-        ) {
-            throw new Error("Resposta PIX incompleta do Mercado Pago.");
-        }
 
         await supabaseRequest(
             `pedidos?id=eq.${pedidoId}`,
@@ -307,33 +205,50 @@ module.exports = async function handler(req, res) {
                 method: "PATCH",
                 body: JSON.stringify({
                     mercadopago_payment_id: String(pagamento.id),
-                    pix_qr_code: dadosPix.qr_code,
-                    pix_qr_code_base64: dadosPix.qr_code_base64,
-                    pix_expira_em: pagamento.date_of_expiration || null,
-                    status_pagamento: pagamento.status || "pendente"
+                    pix_qr_code: dadosPix?.qr_code || null,
+                    pix_qr_code_base64: dadosPix?.qr_code_base64 || null,
+                    pix_expira_em: pagamento.date_of_expiration || expiracao,
+                    status_pagamento: pagamento.status || "pending"
                 })
             }
         );
+
+        if (
+            !dadosPix?.qr_code ||
+            !dadosPix?.qr_code_base64
+        ) {
+            throw new Error(
+                "Pagamento criado, mas os dados do QR Code não foram retornados."
+            );
+        }
 
         return res.status(201).json({
             sucesso: true,
             pedidoId,
             paymentId: pagamento.id,
             status: pagamento.status,
-            total: totalCentavos / 100,
+            total: Number(pedidoCriado.total),
             qrCode: dadosPix.qr_code,
             qrCodeBase64: dadosPix.qr_code_base64,
             ticketUrl: dadosPix.ticket_url || null,
-            expiraEm: pagamento.date_of_expiration || null
+            expiraEm: pagamento.date_of_expiration || expiracao
         });
 
     } catch (error) {
         console.error("Erro ao criar pagamento:", error);
 
+        if (pedidoId && !pagamentoCriado) {
+            console.error(
+                "A reserva do pedido foi mantida para evitar liberar estoque de uma possível cobrança."
+            );
+        }
+
         return enviarErro(
             res,
             500,
-            "Ocorreu um erro ao processar seu pedido."
+            pagamentoCriado
+                ? "O pagamento foi criado, mas houve um erro ao finalizar o registro. Entre em contato com a loja."
+                : "Ocorreu um erro ao processar seu pedido."
         );
     }
 };

@@ -73,21 +73,9 @@ function validarAssinatura(req, dataId) {
         return false;
     }
 
-    let timestampSegundos = Number(timestamp);
+    const timestampSegundos = Number(timestamp);
 
     if (!Number.isFinite(timestampSegundos)) {
-        return false;
-    }
-
-    if (timestampSegundos > 1000000000000) {
-        timestampSegundos = Math.floor(timestampSegundos / 1000);
-    }
-
-    const diferencaTempo = Math.abs(
-        Math.floor(Date.now() / 1000) - timestampSegundos
-    );
-
-    if (diferencaTempo > 300) {
         return false;
     }
 
@@ -101,17 +89,23 @@ function validarAssinatura(req, dataId) {
         .update(manifesto)
         .digest("hex");
 
-    const hashBuffer = Buffer.from(hashRecebido, "hex");
-    const calculadoBuffer = Buffer.from(hashCalculado, "hex");
-
-    if (
-        hashBuffer.length !== calculadoBuffer.length ||
-        hashBuffer.length === 0
-    ) {
+    if (!/^[a-f0-9]{64}$/i.test(hashRecebido)) {
         return false;
     }
 
+    const hashBuffer = Buffer.from(hashRecebido, "hex");
+    const calculadoBuffer = Buffer.from(hashCalculado, "hex");
+
     return crypto.timingSafeEqual(hashBuffer, calculadoBuffer);
+}
+
+async function liberarReserva(pedidoId) {
+    return supabaseRequest("rpc/liberar_estoque_pedido", {
+        method: "POST",
+        body: JSON.stringify({
+            p_pedido_id: Number(pedidoId)
+        })
+    });
 }
 
 module.exports = async function handler(req, res) {
@@ -138,20 +132,6 @@ module.exports = async function handler(req, res) {
         const tipo = obterValorUnico(req.query?.type);
         const dataId = obterValorUnico(req.query?.["data.id"]);
 
-        if (!dataId) {
-            return res.status(400).json({
-                erro: true,
-                mensagem: "Identificador do pagamento ausente."
-            });
-        }
-
-        if (!validarAssinatura(req, dataId)) {
-            return res.status(401).json({
-                erro: true,
-                mensagem: "Assinatura inválida."
-            });
-        }
-
         if (tipo && tipo !== "payment") {
             return res.status(200).json({
                 recebido: true,
@@ -159,10 +139,17 @@ module.exports = async function handler(req, res) {
             });
         }
 
-        if (!/^\d+$/.test(String(dataId))) {
+        if (!dataId || !/^\d+$/.test(String(dataId))) {
             return res.status(400).json({
                 erro: true,
-                mensagem: "Identificador de pagamento inválido."
+                mensagem: "Identificador do pagamento inválido."
+            });
+        }
+
+        if (!validarAssinatura(req, dataId)) {
+            return res.status(401).json({
+                erro: true,
+                mensagem: "Assinatura inválida."
             });
         }
 
@@ -201,7 +188,7 @@ module.exports = async function handler(req, res) {
         }
 
         const pedidos = await supabaseRequest(
-            `pedidos?id=eq.${encodeURIComponent(pedidoId)}&select=id,total,status,status_pagamento,mercadopago_payment_id`
+            `pedidos?id=eq.${encodeURIComponent(pedidoId)}&select=id,total,status,status_pagamento,mercadopago_payment_id,estoque_liberado`
         );
 
         const pedido = pedidos?.[0];
@@ -255,27 +242,43 @@ module.exports = async function handler(req, res) {
         if (!statusPermitidos.includes(statusPagamento)) {
             return res.status(200).json({
                 recebido: true,
+                ignorado: true,
                 status: statusPagamento || "desconhecido"
             });
         }
 
-        const jaPago = pedido.status_pagamento === "approved";
+        if (
+            pedido.status_pagamento === "approved" &&
+            statusPagamento !== "approved"
+        ) {
+            return res.status(200).json({
+                recebido: true,
+                status: "approved",
+                ignorado: true
+            });
+        }
 
         if (
-            jaPago &&
+            pedido.estoque_liberado &&
             !["approved", "refunded", "charged_back"].includes(statusPagamento)
         ) {
             return res.status(200).json({
                 recebido: true,
-                status: pedido.status_pagamento
+                status: pedido.status_pagamento,
+                estoqueLiberado: true
             });
         }
 
         let statusPedido = "pendente";
 
         if (statusPagamento === "approved") {
-            statusPedido = "pago";
-        } else if (statusPagamento === "cancelled" || statusPagamento === "rejected") {
+            statusPedido = pedido.estoque_liberado
+                ? "revisao_estoque"
+                : "pago";
+        } else if (
+            statusPagamento === "cancelled" ||
+            statusPagamento === "rejected"
+        ) {
             statusPedido = "cancelado";
         } else if (statusPagamento === "refunded") {
             statusPedido = "reembolsado";
@@ -294,11 +297,22 @@ module.exports = async function handler(req, res) {
             }
         );
 
+        let estoqueLiberado = false;
+
+        if (
+            statusPagamento === "cancelled" ||
+            statusPagamento === "rejected"
+        ) {
+            const resultado = await liberarReserva(pedidoId);
+            estoqueLiberado = resultado?.liberado === true;
+        }
+
         return res.status(200).json({
             recebido: true,
             pedidoId: pedido.id,
             statusPagamento,
-            statusPedido
+            statusPedido,
+            estoqueLiberado
         });
 
     } catch (error) {
