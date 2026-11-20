@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="pagamento.css">
 </head>
 <body>
 
@@ -254,6 +255,70 @@
         </div>
     </aside>
 
+    <div id="payment-overlay" class="payment-overlay hidden">
+    <div class="payment-modal">
+        <div class="payment-header">
+            <h2>FINALIZAR COMPRA</h2>
+            <button type="button" id="close-payment-btn" class="payment-close">&times;</button>
+        </div>
+
+        <div id="payment-method-view">
+            <label for="payment-email">E-MAIL PARA RECEBER A CONFIRMAÇÃO</label>
+            <input
+                type="email"
+                id="payment-email"
+                placeholder="seuemail@exemplo.com"
+                autocomplete="email"
+                required
+            >
+
+            <p class="payment-total">
+                Total: <strong id="payment-total-value">R$ 0,00</strong>
+            </p>
+
+            <p class="payment-instruction">ESCOLHA A FORMA DE PAGAMENTO</p>
+
+            <button type="button" id="pay-pix-btn" class="payment-option">
+                PAGAR COM PIX
+            </button>
+
+            <button type="button" id="pay-card-btn" class="payment-option">
+                PAGAR COM CARTÃO
+            </button>
+
+            <p id="payment-error" class="payment-error hidden"></p>
+        </div>
+
+        <div id="payment-pix-view" class="hidden">
+            <h3>PIX GERADO</h3>
+            <p>Escaneie o QR Code ou copie o código abaixo para pagar.</p>
+            <img id="payment-pix-image" alt="QR Code PIX">
+            <textarea id="payment-pix-code" readonly></textarea>
+            <button type="button" id="copy-pix-btn" class="payment-option">
+                COPIAR CÓDIGO PIX
+            </button>
+            <p id="pix-expiration-text"></p>
+            <p id="pix-status-text"></p>
+            <button type="button" id="back-payment-btn" class="payment-option">
+                VOLTAR
+            </button>
+        </div>
+
+        <div id="payment-card-view" class="hidden">
+            <div id="cardPaymentBrick_container"></div>
+            <p id="card-payment-status" class="payment-error"></p>
+        </div>
+
+        <div id="payment-success-view" class="hidden">
+            <h3>RECEBEMOS SUA SOLICITAÇÃO</h3>
+            <p id="payment-success-message"></p>
+            <button type="button" id="finish-payment-btn" class="payment-option">
+                CONCLUIR
+            </button>
+        </div>
+    </div>
+</div>
+
     <!-- PAINEL ADMIN (Escondido) -->
     <div id="admin-overlay" class="admin-overlay hidden">
         <div class="admin-container">
@@ -351,6 +416,11 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <script src="script.js"></script>
+    <script src="admin.js"></script>
     <script src="script.js"></script>
     <script src="admin.js"></script>
 </body>

@@ -1,4 +1,3 @@
-
 const crypto = require("crypto");
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -36,11 +35,7 @@ async function supabaseRequest(path, options = {}) {
 }
 
 function obterValorUnico(valor) {
-    if (Array.isArray(valor)) {
-        return valor[0];
-    }
-
-    return valor;
+    return Array.isArray(valor) ? valor[0] : valor;
 }
 
 function validarAssinatura(req, dataId) {
@@ -75,7 +70,10 @@ function validarAssinatura(req, dataId) {
 
     const timestampSegundos = Number(timestamp);
 
-    if (!Number.isFinite(timestampSegundos)) {
+    if (
+        !Number.isSafeInteger(timestampSegundos) ||
+        timestampSegundos <= 0
+    ) {
         return false;
     }
 
@@ -93,10 +91,10 @@ function validarAssinatura(req, dataId) {
         return false;
     }
 
-    const hashBuffer = Buffer.from(hashRecebido, "hex");
-    const calculadoBuffer = Buffer.from(hashCalculado, "hex");
-
-    return crypto.timingSafeEqual(hashBuffer, calculadoBuffer);
+    return crypto.timingSafeEqual(
+        Buffer.from(hashRecebido, "hex"),
+        Buffer.from(hashCalculado, "hex")
+    );
 }
 
 async function liberarReserva(pedidoId) {
@@ -188,7 +186,7 @@ module.exports = async function handler(req, res) {
         }
 
         const pedidos = await supabaseRequest(
-            `pedidos?id=eq.${encodeURIComponent(pedidoId)}&select=id,total,status,status_pagamento,mercadopago_payment_id,estoque_liberado`
+            `pedidos?id=eq.${encodeURIComponent(pedidoId)}&select=id,total,status,status_pagamento,mercadopago_payment_id,estoque_liberado,metodo_pagamento`
         );
 
         const pedido = pedidos?.[0];
@@ -249,7 +247,7 @@ module.exports = async function handler(req, res) {
 
         if (
             pedido.status_pagamento === "approved" &&
-            statusPagamento !== "approved"
+            !["approved", "refunded", "charged_back"].includes(statusPagamento)
         ) {
             return res.status(200).json({
                 recebido: true,
